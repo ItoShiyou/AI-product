@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>シンプルメモ</title>
+    <link rel="stylesheet" href="../../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+    <div class="app-sticky">
+      <header class="app-bar">
+        <div class="app-title-row">
+          <h1 class="app-title">シンプルメモ</h1>
+          <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+            Dark
+          </button>
+        </div>
+      </header>
+
+      <nav class="tab-bar" role="tablist" aria-label="セクション">
+        <button id="tabBtnCompose" class="tab-btn" role="tab" aria-selected="false" aria-controls="tabPanelCompose" type="button">新しいメモ</button>
+        <button id="tabBtnList" class="tab-btn is-active" role="tab" aria-selected="true" aria-controls="tabPanelList" type="button">メモ一覧</button>
+        <button id="tabBtnTools" class="tab-btn" role="tab" aria-selected="false" aria-controls="tabPanelTools" type="button">ツール</button>
+      </nav>
+    </div>
+
+      <main class="main-content">
+
+        <section id="tabPanelCompose" class="tab-panel card" role="tabpanel" aria-labelledby="tabBtnCompose" hidden>
+          <div class="list-header">
+            <h2 id="composePanelTitle">新しいメモ</h2>
+            <span id="editingBadge" class="muted" hidden>編集中</span>
+          </div>
+          <label class="field-label" for="memoTitleInput">タイトル</label>
+          <input
+            id="memoTitleInput"
+            class="form-control"
+            type="text"
+            maxlength="60"
+            placeholder="タイトルを入力"
+          />
+          <span id="titleCharCounter" class="muted">0 / 60</span>
+
+          <label class="field-label field-gap" for="memoBodyInput">本文</label>
+          <textarea
+            id="memoBodyInput"
+            class="form-control"
+            rows="10"
+            maxlength="500"
+            placeholder="ここにメモを入力"
+          ></textarea>
+
+          <div class="composer-options">
+            <div>
+              <label class="field-label" for="memoTagInput">タグ</label>
+              <input
+                id="memoTagInput"
+                class="form-control inline-control"
+                type="text"
+                maxlength="20"
+                placeholder="タグを入力（例: 仕事）"
+                list="tagSuggestions"
+                autocomplete="off"
+              />
+              <datalist id="tagSuggestions"></datalist>
+            </div>
+          </div>
+
+          <div class="compose-footer">
+            <span id="draftStatus" class="muted">下書きを保存していません</span>
+            <span id="bodyCharCounter" class="muted">0 / 500</span>
+          </div>
+          <div class="button-row">
+            <button id="saveMemo" class="btn-primary" type="button">メモを保存</button>
+            <button id="clearDraft" class="btn-secondary" type="button">下書きクリア</button>
+          </div>
+        </section>
+
+        <section id="tabPanelList" class="tab-panel card" role="tabpanel" aria-labelledby="tabBtnList">
+          <div class="list-header">
+            <h2>メモ一覧</h2>
+            <div class="list-header-right">
+              <span id="memoStats" class="muted">0件</span>
+              <button id="filterToggle" class="filter-toggle-btn" type="button" aria-label="絞り込み・並び替え" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <input
+            id="searchInput"
+            class="form-control search-input"
+            type="search"
+            placeholder="検索..."
+            aria-label="メモを検索"
+          />
+
+          <div id="filterPanel" class="filter-panel">
+            <div class="filter-controls">
+              <div class="filter-col">
+                <label class="filter-label" for="sortSelect">並び替え</label>
+                <select id="sortSelect" class="filter-select" aria-label="並び替え">
+                  <option value="updated-desc">新しい順</option>
+                  <option value="updated-asc">古い順</option>
+                  <option value="title-asc">タイトル順</option>
+                </select>
+              </div>
+              <div class="filter-col">
+                <label class="filter-label" for="tagFilterSelect">タグ</label>
+                <select id="tagFilterSelect" class="filter-select" aria-label="タグ絞り込み">
+                  <option value="all">すべて</option>
+                </select>
+              </div>
+              <div class="filter-col">
+                <label class="filter-label" for="dateDisplaySelect">日時</label>
+                <select id="dateDisplaySelect" class="filter-select" aria-label="日時表示">
+                  <option value="updated-first">更新優先</option>
+                  <option value="created-first">作成優先</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <ul id="memoList" class="memo-list" aria-live="polite"></ul>
+          <p id="emptyState" class="empty-state">保存されたメモはまだありません。</p>
+        </section>
+
+        <section id="tabPanelTools" class="tab-panel card" role="tabpanel" aria-labelledby="tabBtnTools" hidden>
+          <div class="list-header">
+            <h2>ツール</h2>
+          </div>
+
+          <h3 class="tools-section-title">データ管理</h3>
+          <div class="button-row">
+            <button id="exportJson" class="btn-secondary" type="button">JSON書き出し</button>
+            <button id="importJson" class="btn-secondary" type="button">JSON読み込み</button>
+            <input id="importFileInput" type="file" accept="application/json" hidden />
+          </div>
+
+          <h3 class="tools-section-title">ごみ箱 <span id="trashStats" class="muted">0件</span></h3>
+          <ul id="trashList" class="memo-list" aria-live="polite"></ul>
+          <p id="trashEmptyState" class="empty-state">ごみ箱は空です。</p>
+          <div class="button-row">
+            <button id="emptyTrash" class="btn-secondary" type="button">ごみ箱を空にする</button>
+          </div>
+
+          <h3 class="tools-section-title">危険な操作</h3>
+          <button id="clearAll" class="btn-danger" type="button">全メモを削除</button>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+
+      <!-- メモ詳細画面 -->
+      <div id="memoDetail" class="memo-detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <header class="detail-appbar">
+          <button id="detailBack" class="detail-back-btn" type="button" aria-label="一覧に戻る">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            メモ一覧
+          </button>
+          <div class="detail-appbar-actions">
+            <button id="detailEdit" class="btn-secondary compact" type="button">編集</button>
+            <button id="detailDelete" class="memo-delete compact" type="button" aria-label="ごみ筱へ移動">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </header>
+        <div class="detail-scroll">
+          <h2 id="detailTitle" class="detail-title"></h2>
+          <div class="detail-meta-row">
+            <span id="detailTag" class="tag-pill" hidden></span>
+            <span id="detailMeta" class="memo-meta"></span>
+          </div>
+          <p id="detailContent" class="detail-content"></p>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

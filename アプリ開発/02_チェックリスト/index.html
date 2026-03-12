@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>チェックリスト</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell checklist-shell">
+      <header class="app-bar checklist-bar">
+        <h1 class="ba-title checklist-title">チェックリスト</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card checklist-composer" aria-label="項目追加">
+          <label class="field-label" for="itemInput">項目を追加</label>
+          <div class="compose-row">
+            <input
+              id="itemInput"
+              class="form-control"
+              type="text"
+              maxlength="80"
+              placeholder="例: 牛乳を買う"
+            />
+            <button id="addItemBtn" class="ba-button" type="button">追加</button>
+          </div>
+          <p id="statusMessage" class="muted" aria-live="polite">ここに追加した項目は自動保存されます</p>
+        </section>
+
+        <section class="ba-card" aria-label="一覧と操作">
+          <div class="list-header">
+            <h2 class="section-title">一覧</h2>
+            <span id="statsLabel" class="muted">0件 / 完了0件</span>
+          </div>
+
+          <div class="filter-row" role="tablist" aria-label="表示フィルター">
+            <button class="filter-btn is-active" data-filter="all" type="button" aria-selected="true">すべて</button>
+            <button class="filter-btn" data-filter="active" type="button" aria-selected="false">未完了</button>
+            <button class="filter-btn" data-filter="done" type="button" aria-selected="false">完了</button>
+          </div>
+
+          <ul id="checklist" class="checklist" aria-live="polite"></ul>
+          <p id="emptyState" class="empty-state">項目はまだありません。</p>
+
+          <div class="button-row utility-row">
+            <button id="resetDoneBtn" class="btn-secondary" type="button">リセット</button>
+            <button id="clearAllBtn" class="btn-danger" type="button">全削除</button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

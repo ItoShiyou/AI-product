@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vocal Matching AI</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://unpkg.com/meyda/dist/web/meyda.min.js"></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <p class="eyebrow">Voice Analysis</p>
+        <h1>Vocal Matching AI</h1>
+        <p class="lead">あなたの声質と近い歌手を、ブラウザだけで解析します。</p>
+      </header>
+
+      <section class="panel control-panel">
+        <div class="profile-grid">
+          <label class="field">
+            <span>年齢</span>
+            <input id="ageInput" type="number" min="8" max="99" placeholder="例: 24" />
+          </label>
+          <label class="field">
+            <span>性別</span>
+            <select id="genderInput">
+              <option value="">選択してください</option>
+              <option value="female">女性</option>
+              <option value="male">男性</option>
+              <option value="other">その他</option>
+            </select>
+          </label>
+          <label class="field field-wide">
+            <span>よく歌うアーティスト</span>
+            <input id="favoriteArtistInput" type="text" list="artistSuggestions" placeholder="例: あいみょん" />
+            <datalist id="artistSuggestions"></datalist>
+          </label>
+        </div>
+
+        <div class="mode-row">
+          <p id="modePrompt" class="mode-prompt">録音順: 地声 -> 裏声（必要に応じてミックスボイス）</p>
+          <label class="mix-toggle">
+            <input id="mixModeToggle" type="checkbox" />
+            ミックスボイスも録音する
+          </label>
+        </div>
+
+        <p class="volume-note">
+          判定可能な音量帯: RMS
+          <code>0.015 - 0.12</code>
+          が全体の 55% 以上。小さすぎる/大きすぎる声は再録音になります。
+        </p>
+
+        <div class="volume-meter" aria-live="polite">
+          <div class="meter-head">
+            <span>音量ガイド</span>
+            <span id="rmsValue">現在: 0.000</span>
+          </div>
+          <div id="rmsTrack" class="meter-track">
+            <div class="meter-zone meter-zone-low"></div>
+            <div class="meter-zone meter-zone-good"></div>
+            <div class="meter-zone meter-zone-high"></div>
+            <div class="meter-line meter-line-min" title="下限"></div>
+            <div class="meter-line meter-line-max" title="上限"></div>
+            <div id="rmsPointer" class="meter-pointer"></div>
+          </div>
+          <div class="meter-legend">
+            <span>小さすぎ</span>
+            <span>適正</span>
+            <span>大きすぎ</span>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span id="stateBadge" class="badge">IDLE</span>
+          <span id="statusText">解析開始ボタンを押してください。</span>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn" class="btn btn-primary">解析開始</button>
+          <button id="stopBtn" class="btn" disabled>録音停止</button>
+          <button id="retryBtn" class="btn" hidden>再試行</button>
+        </div>
+
+        <div id="liveGuide" class="guide" aria-live="polite"></div>
+
+        <div class="viz-wrap">
+          <canvas id="waveCanvas" width="900" height="220"></canvas>
+        </div>
+      </section>
+
+      <section id="resultPanel" class="panel result-panel" hidden>
+        <h2>解析結果</h2>
+        <p id="resultSummary"></p>
+
+        <div class="chart-wrap">
+          <canvas id="radarChart"></canvas>
+        </div>
+
+        <ol id="topList" class="top-list"></ol>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="assertive"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

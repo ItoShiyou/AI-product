@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>簡易家計簿</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell kakeibo-shell">
+
+      <header class="app-bar kakeibo-bar">
+        <h1 class="kakeibo-title">簡易家計簿</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+
+        <!-- 月間サマリー -->
+        <section class="ba-card summary-card" aria-label="月間サマリー">
+          <div class="month-nav">
+            <button id="prevMonthBtn" class="month-nav-btn" type="button" aria-label="前の月">‹</button>
+            <h2 id="currentMonthLabel" class="month-label">----年--月</h2>
+            <button id="nextMonthBtn" class="month-nav-btn" type="button" aria-label="次の月">›</button>
+          </div>
+          <div class="balance-display">
+            <span class="balance-label">収支</span>
+            <span id="balanceAmount" class="balance-amount">¥0</span>
+          </div>
+          <div class="summary-row">
+            <div class="summary-item">
+              <span class="summary-label income-label">収入</span>
+              <span id="totalIncome" class="summary-value income-value">¥0</span>
+            </div>
+            <div class="summary-divider" aria-hidden="true"></div>
+            <div class="summary-item">
+              <span class="summary-label expense-label">支出</span>
+              <span id="totalExpense" class="summary-value expense-value">¥0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 入力フォーム -->
+        <section class="ba-card entry-form" aria-label="記録を追加">
+          <div class="type-selector" role="group" aria-label="種別">
+            <button class="type-btn is-active" data-type="expense" type="button">支出</button>
+            <button class="type-btn" data-type="income" type="button">収入</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="field-label" for="amountInput">金額</label>
+              <div class="amount-wrap">
+                <span class="yen-sign" aria-hidden="true">¥</span>
+                <input
+                  id="amountInput"
+                  class="form-control amount-input"
+                  type="number"
+                  min="1"
+                  max="99999999"
+                  placeholder="0"
+                  inputmode="numeric"
+                />
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="field-label" for="categoryInput">項目</label>
+              <input
+                id="categoryInput"
+                class="form-control"
+                type="text"
+                maxlength="30"
+                placeholder="例: 食費"
+                list="categorySuggestions"
+                autocomplete="off"
+              />
+              <datalist id="categorySuggestions">
+                <option value="食費">
+                <option value="外食">
+                <option value="交通費">
+                <option value="日用品">
+                <option value="娯楽">
+                <option value="医療">
+                <option value="光熱費">
+                <option value="通信費">
+                <option value="給料">
+                <option value="ボーナス">
+                <option value="その他">
+              </datalist>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="dateInput">日付</label>
+            <input
+              id="dateInput"
+              class="form-control"
+              type="date"
+            />
+          </div>
+
+          <p id="statusMessage" class="muted" aria-live="polite">金額と項目を入力して追加してください</p>
+          <button id="addEntryBtn" class="ba-button add-btn" type="button">追加する</button>
+        </section>
+
+        <!-- 明細一覧 -->
+        <section class="ba-card" aria-label="明細一覧">
+          <div class="list-header">
+            <h2 class="section-title">明細</h2>
+            <span id="entryCount" class="muted">0件</span>
+          </div>
+          <div id="entryList" class="entry-list" aria-live="polite"></div>
+          <p id="emptyState" class="empty-state">この月の記録はありません。</p>
+        </section>
+
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

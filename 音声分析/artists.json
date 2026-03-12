@@ -1,0 +1,124 @@
+{
+  "artists": [
+    {
+      "id": "jp-001",
+      "name": "あいみょん",
+      "gender": "female",
+      "pitch_range": { "min": "lowG", "max": "hiD", "freq_min": 196.0, "freq_max": 587.33 },
+      "timbre": {
+        "spectral_centroid": 1850.5,
+        "mfcc_mean": [-12.4, 1.2, -0.5, 0.8, -1.2, 0.3, -0.4, 0.2, -0.1, 0.5, -0.2, 0.1, -0.3],
+        "tightness": 0.65
+      },
+      "tags": ["チェストボイス中心", "ストレート", "中音域豊富"]
+    },
+    {
+      "id": "jp-002",
+      "name": "米津玄師",
+      "gender": "male",
+      "pitch_range": { "min": "lowF", "max": "hiC", "freq_min": 174.61, "freq_max": 523.25 },
+      "timbre": {
+        "spectral_centroid": 1688.0,
+        "mfcc_mean": [-10.8, 0.9, -0.2, 0.3, -1.4, 0.2, -0.1, 0.4, -0.3, 0.2, -0.4, 0.1, -0.2],
+        "tightness": 0.71
+      },
+      "tags": ["中低音", "息感", "陰影"]
+    },
+    {
+      "id": "jp-003",
+      "name": "Ado",
+      "gender": "female",
+      "pitch_range": { "min": "lowA", "max": "hiF", "freq_min": 220.0, "freq_max": 698.46 },
+      "timbre": {
+        "spectral_centroid": 2410.2,
+        "mfcc_mean": [-14.1, 1.6, -0.8, 1.0, -1.0, 0.7, -0.6, 0.4, -0.2, 0.8, -0.3, 0.2, -0.4],
+        "tightness": 0.82
+      },
+      "tags": ["高密度", "パワー", "高音強め"]
+    },
+    {
+      "id": "jp-004",
+      "name": "YOASOBI ikura",
+      "gender": "female",
+      "pitch_range": { "min": "lowG", "max": "hiE", "freq_min": 196.0, "freq_max": 659.25 },
+      "timbre": {
+        "spectral_centroid": 2105.4,
+        "mfcc_mean": [-11.6, 1.3, -0.4, 0.9, -1.1, 0.5, -0.3, 0.2, -0.2, 0.6, -0.2, 0.1, -0.1],
+        "tightness": 0.68
+      },
+      "tags": ["透明感", "輪郭明瞭", "ポップ"]
+    },
+    {
+      "id": "jp-005",
+      "name": "Official髭男dism 藤原聡",
+      "gender": "male",
+      "pitch_range": { "min": "lowE", "max": "hiD", "freq_min": 164.81, "freq_max": 587.33 },
+      "timbre": {
+        "spectral_centroid": 1936.8,
+        "mfcc_mean": [-10.4, 1.1, -0.1, 0.7, -1.0, 0.3, -0.2, 0.3, -0.1, 0.5, -0.3, 0.2, -0.2],
+        "tightness": 0.73
+      },
+      "tags": ["ミックスボイス", "高音安定", "ブライト"]
+    },
+    {
+      "id": "jp-006",
+      "name": "宇多田ヒカル",
+      "gender": "female",
+      "pitch_range": { "min": "lowF", "max": "hiC", "freq_min": 174.61, "freq_max": 523.25 },
+      "timbre": {
+        "spectral_centroid": 1620.1,
+        "mfcc_mean": [-9.9, 0.7, -0.3, 0.5, -1.5, 0.2, -0.3, 0.1, -0.1, 0.3, -0.2, 0.1, -0.1],
+        "tightness": 0.64
+      },
+      "tags": ["柔らかい", "低域リッチ", "R&B"]
+    },
+    {
+      "id": "jp-007",
+      "name": "LiSA",
+      "gender": "female",
+      "pitch_range": { "min": "lowA", "max": "hiG", "freq_min": 220.0, "freq_max": 783.99 },
+      "timbre": {
+        "spectral_centroid": 2555.2,
+        "mfcc_mean": [-14.7, 1.9, -0.9, 1.1, -0.8, 0.8, -0.5, 0.5, -0.2, 0.9, -0.4, 0.3, -0.4],
+        "tightness": 0.85
+      },
+      "tags": ["エッジ", "ロック", "ハイトーン"]
+    },
+    {
+      "id": "jp-008",
+      "name": "King Gnu 井口理",
+      "gender": "male",
+      "pitch_range": { "min": "lowD", "max": "hiB", "freq_min": 146.83, "freq_max": 493.88 },
+      "timbre": {
+        "spectral_centroid": 1575.0,
+        "mfcc_mean": [-9.5, 0.8, -0.4, 0.4, -1.3, 0.1, -0.2, 0.2, -0.2, 0.4, -0.3, 0.1, -0.2],
+        "tightness": 0.67
+      },
+      "tags": ["ファルセット", "繊細", "中低域"]
+    },
+    {
+      "id": "jp-009",
+      "name": "椎名林檎",
+      "gender": "female",
+      "pitch_range": { "min": "lowF", "max": "hiE", "freq_min": 174.61, "freq_max": 659.25 },
+      "timbre": {
+        "spectral_centroid": 2012.3,
+        "mfcc_mean": [-11.8, 1.0, -0.6, 0.6, -1.2, 0.4, -0.4, 0.3, -0.1, 0.6, -0.2, 0.2, -0.3],
+        "tightness": 0.74
+      },
+      "tags": ["色気", "抑揚", "ジャズ感"]
+    },
+    {
+      "id": "jp-010",
+      "name": "back number 清水依与吏",
+      "gender": "male",
+      "pitch_range": { "min": "lowE", "max": "hiC", "freq_min": 164.81, "freq_max": 523.25 },
+      "timbre": {
+        "spectral_centroid": 1715.6,
+        "mfcc_mean": [-10.1, 0.9, -0.2, 0.4, -1.3, 0.2, -0.2, 0.2, -0.2, 0.3, -0.3, 0.1, -0.2],
+        "tightness": 0.69
+      },
+      "tags": ["ナチュラル", "バラード", "中高域"]
+    }
+  ]
+}
