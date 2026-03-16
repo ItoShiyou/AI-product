@@ -289,6 +289,7 @@
                         id="industrySelect"
                         class="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition focus:border-threat-blue"
                       >
+                        <option value="">業種を選択してください</option>
                         <option value="all">すべての業種</option>
                       </select>
                     </div>
@@ -336,10 +337,45 @@
                       <label for="routineRange" class="text-sm font-medium text-white/80">1日の定型業務比率</label>
                       <span id="routineValue" class="font-mono text-2xl font-bold text-white">72%</span>
                     </div>
-                    <input id="routineRange" type="range" min="0" max="100" value="72" class="w-full" />
-                    <div class="mt-3 flex justify-between font-mono text-xs text-white/35">
-                      <span>非定型</span>
-                      <span>完全定型</span>
+                    <p class="mb-3 text-xs leading-6 text-white/55">当てはまる項目にチェックすると、定型業務比率を自動計算します。</p>
+                    <div id="routineChecklist" class="grid gap-2">
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="14" class="mt-1" />
+                        <span>同じ手順を毎日くり返す（例: 定型入力・定型チェック）</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="16" class="mt-1" />
+                        <span>判断基準がマニュアル化されている</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="12" class="mt-1" />
+                        <span>Excel/システムへの転記・更新作業が多い</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="10" class="mt-1" />
+                        <span>テンプレート文書（報告書・見積・請求）作成が中心</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="18" class="mt-1" checked />
+                        <span>問い合わせ対応の多くがFAQ・定型回答で完了する</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="12" class="mt-1" />
+                        <span>例外対応より通常処理の件数が圧倒的に多い</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="8" class="mt-1" />
+                        <span>業務成果が処理件数・処理速度で評価される</span>
+                      </label>
+                      <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/80">
+                        <input type="checkbox" data-routine-weight="10" class="mt-1" />
+                        <span>業務の流れをそのまま自動化しやすいと感じる</span>
+                      </label>
+                    </div>
+                    <input id="routineRange" type="range" min="0" max="100" value="72" class="hidden" />
+                    <div class="mt-3 flex items-center justify-between font-mono text-xs text-white/35">
+                      <span>チェック少: 非定型寄り</span>
+                      <span>チェック多: 定型寄り</span>
                     </div>
                   </div>
 
@@ -652,6 +688,7 @@
         jobCountPill: document.getElementById("jobCountPill"),
         ageRange: document.getElementById("ageRange"),
         ageValue: document.getElementById("ageValue"),
+        routineChecklist: document.getElementById("routineChecklist"),
         routineRange: document.getElementById("routineRange"),
         routineValue: document.getElementById("routineValue"),
         incomeInput: document.getElementById("incomeInput"),
@@ -697,6 +734,7 @@
 
       async function init() {
         bindEvents();
+        updateRoutineRatioFromChecklist();
         updateRangeLabels();
         await loadJobs();
         startToastLoop();
@@ -709,7 +747,9 @@
         els.jobSearch.addEventListener("focus", handleJobInput);
         document.addEventListener("click", handleOutsideSuggestionClick);
         els.ageRange.addEventListener("input", updateRangeLabels);
-        els.routineRange.addEventListener("input", updateRangeLabels);
+        if (els.routineChecklist) {
+          els.routineChecklist.addEventListener("change", updateRoutineRatioFromChecklist);
+        }
         els.aiSkillOptions.addEventListener("click", handleSkillSelect);
         els.diagnosticForm.addEventListener("submit", handleFormSubmit);
         els.confirmSeverityBtn.addEventListener("click", confirmSeverity);
@@ -728,10 +768,7 @@
           state.jobs = Array.isArray(state.jobMaster.jobs) ? state.jobMaster.jobs : [];
           els.jobCountPill.textContent = `${state.jobs.length} JOBS`;
           populateIndustrySelect();
-          populateJobSelectForCategory("all");
-          if (state.jobs.length > 0) {
-            selectJob(state.jobs[0], false);
-          }
+          populateJobSelectForCategory("");
         } catch (error) {
           console.error(error);
           els.jobCategoryLabel.textContent = "Load Failed";
@@ -745,15 +782,16 @@
           state.jobs.map((job) => job.category || job.industry_name || job.industryName || "その他")
         );
         els.industrySelect.innerHTML = [
+          '<option value="">業種を選択してください</option>',
           '<option value="all">すべての業種</option>',
           ...categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`),
         ].join("");
-        els.industrySelect.value = "all";
+        els.industrySelect.value = "";
       }
 
       function populateJobSelectForCategory(category) {
         const filtered = state.jobs.filter((job) => {
-          if (category === "all") return true;
+          if (!category || category === "all") return true;
           const jobCategory = job.category || job.industry_name || job.industryName || "その他";
           return jobCategory === category;
         });
@@ -865,6 +903,22 @@
         els.routineValue.textContent = `${els.routineRange.value}%`;
       }
 
+      function updateRoutineRatioFromChecklist() {
+        if (!els.routineChecklist) {
+          return;
+        }
+
+        const checks = Array.from(els.routineChecklist.querySelectorAll('input[type="checkbox"][data-routine-weight]'));
+        const totalWeight = checks.reduce((sum, checkbox) => sum + Number(checkbox.dataset.routineWeight || 0), 0);
+        const checkedWeight = checks.reduce((sum, checkbox) => {
+          return sum + (checkbox.checked ? Number(checkbox.dataset.routineWeight || 0) : 0);
+        }, 0);
+
+        const ratio = totalWeight > 0 ? Math.round((checkedWeight / totalWeight) * 100) : 0;
+        els.routineRange.value = String(clamp(ratio, 0, 100));
+        updateRangeLabels();
+      }
+
       function handleSkillSelect(event) {
         const button = event.target.closest(".skill-chip");
         if (!button) {
@@ -910,11 +964,35 @@
       }
 
       function validateInputs() {
-        if (!state.selectedJob) {
-          els.jobSearch.focus();
-          handleJobInput();
+        const selectedIndustry = String(els.industrySelect.value || "").trim();
+        if (!selectedIndustry) {
+          els.industrySelect.focus();
+          return "業種を選択してください。";
+        }
+        if (selectedIndustry === "all") {
+          els.industrySelect.focus();
+          return "「すべての業種」では診断できません。特定の業種を選択してください。";
+        }
+
+        const selectedJobCode = String(els.jobSelect.value || "").trim();
+        if (!selectedJobCode) {
+          els.jobSelect.focus();
           return "職種を選択してください。";
         }
+
+        const selectedJob = state.jobs.find((item) => (item.job_code || item.jobCode || "") === selectedJobCode);
+        if (!selectedJob) {
+          els.jobSelect.focus();
+          return "選択した職種データが見つかりません。再選択してください。";
+        }
+
+        const selectedJobCategory = selectedJob.category || selectedJob.industry_name || selectedJob.industryName || "その他";
+        if (selectedJobCategory !== selectedIndustry) {
+          els.jobSelect.focus();
+          return "選択した業種と職種が一致していません。職種を再選択してください。";
+        }
+
+        state.selectedJob = selectedJob;
 
         const age = Number(els.ageRange.value);
         const routine = Number(els.routineRange.value);
