@@ -1,0 +1,85 @@
+:root {
+  --app-main-color: #fff4bd;
+  --app-main-color-strong: #e3d17f;
+  --bg-color: #fff4bd;
+  --surface-color: #fff9dd;
+  --surface-muted: #fff1b0;
+}
+
+:root[data-theme="dark"] {
+  --app-main-color: #55502b;
+  --app-main-color-strong: #756f42;
+  --bg-color: #55502b;
+  --surface-color: #676135;
+  --surface-muted: #4a4625;
+}
+
+.tax-title {
+  margin: 0;
+  font-size: 1.25rem;
+  text-align: left;
+}
+
+.compact {
+  min-height: 40px;
+  padding: 0 calc(var(--spacing-unit) * 1.5);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: calc(var(--spacing-unit) * 1.5);
+}
+
+.field-label {
+  color: var(--font-sub);
+  font-size: 0.88rem;
+}
+
+.tax-rate-group {
+  border: none;
+  margin: 0 0 calc(var(--spacing-unit) * 1.5);
+  padding: 0;
+  display: flex;
+  gap: calc(var(--spacing-unit) * 2);
+}
+
+.tax-rate-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--font-main);
+  font-size: 0.92rem;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--app-main-color-strong);
+}
+
+.section-title {
+  margin: 0 0 calc(var(--spacing-unit) * 1.5);
+  font-size: 1.05rem;
+}
+
+.result-line {
+  margin: 0 0 calc(var(--spacing-unit) * 1);
+}
+
+.result-line strong {
+  font-size: 1.15rem;
+}
+
+.muted {
+  margin: calc(var(--spacing-unit) * 1.2) 0 0;
+  color: var(--font-sub);
+  font-size: 0.88rem;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--font-sub);
+  font-size: 0.78rem;
+  padding-bottom: 8px;
+}

@@ -1,0 +1,99 @@
+:root {
+  --app-main-color: #c3b1e1;
+  --app-main-color-strong: #a28fcb;
+  --bg-color: #c3b1e1;
+  --surface-color: #dfd4f1;
+  --surface-muted: #d2c4ea;
+}
+
+:root[data-theme="dark"] {
+  --app-main-color: #423652;
+  --app-main-color-strong: #5a4a71;
+  --bg-color: #423652;
+  --surface-color: #534467;
+  --surface-muted: #392d48;
+}
+
+.game-title {
+  margin: 0;
+  text-align: left;
+  font-size: 1.25rem;
+}
+
+.compact {
+  min-height: 40px;
+  padding: 0 calc(var(--spacing-unit) * 1.5);
+}
+
+.mode-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--spacing-unit) * 1);
+}
+
+.panel {
+  margin-top: calc(var(--spacing-unit) * 1.4);
+}
+
+.hidden {
+  display: none;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+  color: var(--font-sub);
+}
+
+#rollBtn {
+  margin-top: calc(var(--spacing-unit) * 1.4);
+  width: 100%;
+}
+
+.result-label {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2rem, 10vw, 3.4rem);
+  font-weight: 700;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.history-list {
+  margin: calc(var(--spacing-unit) * 1.2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit) * 0.8);
+}
+
+.history-list li {
+  background: var(--surface-muted);
+  border-radius: 10px;
+  padding: calc(var(--spacing-unit) * 1);
+  font-size: 0.9rem;
+}
+
+.muted {
+  margin: calc(var(--spacing-unit) * 1) 0 0;
+  color: var(--font-sub);
+  font-size: 0.88rem;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--font-sub);
+  font-size: 0.78rem;
+  padding-bottom: 8px;
+}

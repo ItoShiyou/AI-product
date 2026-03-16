@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ストップウォッチ</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell stop-shell">
+      <header class="app-bar stop-bar">
+        <h1 class="ba-title stop-title">ストップウォッチ</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="計測表示">
+          <p id="timeLabel" class="time-label">00:00.00</p>
+          <p id="statusMessage" class="muted" aria-live="polite">開始で計測を始めます</p>
+          <div class="action-row">
+            <button id="startStopBtn" class="ba-button" type="button">開始</button>
+            <button id="lapBtn" class="btn-secondary" type="button">ラップ</button>
+            <button id="resetBtn" class="btn-secondary" type="button">リセット</button>
+          </div>
+        </section>
+
+        <section class="ba-card" aria-label="ラップ一覧">
+          <div class="list-header">
+            <h2 class="section-title">ラップタイム</h2>
+            <span id="lapCountLabel" class="muted">0件</span>
+          </div>
+          <ol id="lapList" class="lap-list"></ol>
+          <p id="emptyState" class="muted">ラップはまだありません</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

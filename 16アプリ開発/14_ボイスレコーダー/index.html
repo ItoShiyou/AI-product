@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ボイスレコーダー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell recorder-shell">
+      <header class="app-bar recorder-bar">
+        <h1 class="ba-title recorder-title">ボイスレコーダー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="録音コントロール">
+          <p id="statusMessage" class="muted" aria-live="polite">録音を開始してください</p>
+          <p id="recordingLabel" class="recording-label">00:00</p>
+          <div class="action-row">
+            <button id="startBtn" class="ba-button" type="button">録音開始</button>
+            <button id="stopBtn" class="btn-secondary" type="button">停止</button>
+          </div>
+        </section>
+
+        <section class="ba-card" aria-label="録音ファイル一覧">
+          <div class="list-header">
+            <h2 class="section-title">録音リスト</h2>
+            <span id="countLabel" class="muted">0件</span>
+          </div>
+          <ul id="recordList" class="record-list"></ul>
+          <p id="emptyState" class="muted">録音はまだありません</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

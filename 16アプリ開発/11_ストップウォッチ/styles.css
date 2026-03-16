@@ -1,0 +1,79 @@
+:root {
+  --app-main-color: #7fffd4;
+  --app-main-color-strong: #52d1aa;
+  --bg-color: #7fffd4;
+  --surface-color: #c9ffef;
+  --surface-muted: #b3f5e2;
+}
+
+:root[data-theme="dark"] {
+  --app-main-color: #2a5246;
+  --app-main-color-strong: #3f7365;
+  --bg-color: #2a5246;
+  --surface-color: #356457;
+  --surface-muted: #23453b;
+}
+
+.stop-title {
+  margin: 0;
+  font-size: 1.25rem;
+  text-align: left;
+}
+
+.compact {
+  min-height: 40px;
+  padding: 0 calc(var(--spacing-unit) * 1.5);
+}
+
+.time-label {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2.1rem, 10vw, 3.8rem);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.action-row {
+  margin-top: calc(var(--spacing-unit) * 1.5);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: calc(var(--spacing-unit) * 1);
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: calc(var(--spacing-unit) * 1);
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.lap-list {
+  margin: 0;
+  padding-left: calc(var(--spacing-unit) * 2.4);
+  max-height: 280px;
+  overflow: auto;
+}
+
+.lap-list li {
+  margin-bottom: calc(var(--spacing-unit) * 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  margin: calc(var(--spacing-unit) * 1) 0 0;
+  color: var(--font-sub);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--font-sub);
+  font-size: 0.78rem;
+  padding-bottom: 8px;
+}

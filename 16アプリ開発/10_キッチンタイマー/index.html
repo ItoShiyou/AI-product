@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>キッチンタイマー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell timer-shell">
+      <header class="app-bar timer-bar">
+        <h1 class="ba-title timer-title">キッチンタイマー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="時間設定">
+          <div class="time-inputs">
+            <label>
+              分
+              <input id="minutesInput" class="form-control" type="number" min="0" max="180" value="3" inputmode="numeric" />
+            </label>
+            <label>
+              秒
+              <input id="secondsInput" class="form-control" type="number" min="0" max="59" value="0" inputmode="numeric" />
+            </label>
+          </div>
+
+          <div class="preset-row">
+            <button class="btn-secondary preset-btn" data-min="1" type="button">1分</button>
+            <button class="btn-secondary preset-btn" data-min="3" type="button">3分</button>
+            <button class="btn-secondary preset-btn" data-min="5" type="button">5分</button>
+            <button class="btn-secondary preset-btn" data-min="10" type="button">10分</button>
+          </div>
+        </section>
+
+        <section class="ba-card" aria-label="タイマー表示">
+          <p id="timeLabel" class="time-label">03:00</p>
+          <p id="statusMessage" class="muted" aria-live="polite">開始ボタンでカウントダウン</p>
+          <div class="action-row">
+            <button id="startBtn" class="ba-button" type="button">開始</button>
+            <button id="pauseBtn" class="btn-secondary" type="button">一時停止</button>
+            <button id="resetBtn" class="btn-secondary" type="button">リセット</button>
+          </div>
+          <button id="notificationBtn" class="text-link" type="button">通知を許可する</button>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

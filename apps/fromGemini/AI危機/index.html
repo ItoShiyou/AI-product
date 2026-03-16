@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI危機 | 市場価値の賞味期限を算出する</title>
+    <meta
+      name="description"
+      content="100業種データと業務比率から、AI代替率と職種余命を可視化する診断ページ。"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Noto Sans JP", "Hiragino Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+            },
+            colors: {
+              threat: {
+                base: "#121212",
+                surface: "#191c22",
+                line: "rgba(255,255,255,0.1)",
+                blue: "#00E5FF",
+                red: "#FF4B4B",
+                amber: "#F7C948",
+              },
+            },
+            boxShadow: {
+              threat: "0 24px 80px rgba(0, 0, 0, 0.45)",
+              scan: "0 0 0 1px rgba(0,229,255,0.45), 0 0 40px rgba(0,229,255,0.16)",
+            },
+            keyframes: {
+              scan: {
+                "0%": { transform: "translateX(-120%)", opacity: "0" },
+                "20%": { opacity: "0.85" },
+                "100%": { transform: "translateX(120%)", opacity: "0" },
+              },
+              pulseLine: {
+                "0%, 100%": { opacity: "0.15" },
+                "50%": { opacity: "0.65" },
+              },
+              fadeUp: {
+                "0%": { opacity: "0", transform: "translateY(18px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              toastIn: {
+                "0%": { opacity: "0", transform: "translateX(28px) scale(0.96)" },
+                "15%, 85%": { opacity: "1", transform: "translateX(0) scale(1)" },
+                "100%": { opacity: "0", transform: "translateX(28px) scale(0.96)" },
+              },
+            },
+            animation: {
+              scan: "scan 1.6s linear infinite",
+              pulseLine: "pulseLine 2.4s ease-in-out infinite",
+              fadeUp: "fadeUp 0.6s ease-out forwards",
+              toastIn: "toastIn 5.5s ease-in-out forwards",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --threat-start: #061924;
+        --threat-end: #121212;
+        --threat-accent: #00e5ff;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(0, 229, 255, 0.14), transparent 32%),
+          radial-gradient(circle at 80% 0%, rgba(255, 75, 75, 0.14), transparent 28%),
+          linear-gradient(135deg, var(--threat-start), var(--threat-end));
+        transition: background 0.8s ease;
+      }
+
+      .grid-bg {
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 92%);
+      }
+
+      .noise::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.08;
+        mix-blend-mode: soft-light;
+        background-image:
+          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12) 0, transparent 22%),
+          radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.08) 0, transparent 18%),
+          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.06) 0, transparent 18%);
+      }
+
+      .cyber-border {
+        position: relative;
+      }
+
+      .cyber-border::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        padding: 1px;
+        border-radius: inherit;
+        background: linear-gradient(135deg, rgba(0, 229, 255, 0.55), rgba(255, 75, 75, 0.45));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+
+      .scan-ring::after {
+        content: "";
+        position: absolute;
+        inset: -14px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 229, 255, 0.32);
+        animation: pulseLine 1.4s ease-in-out infinite;
+      }
+
+      .scan-beam {
+        overflow: hidden;
+      }
+
+      .scan-beam::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.32), transparent);
+        animation: scan 1.7s linear infinite;
+      }
+
+      .result-backdrop {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
+          linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 75, 75, 0.1));
+      }
+
+      .meter-track {
+        background: linear-gradient(90deg, #00e5ff 0%, #f7c948 55%, #ff4b4b 100%);
+      }
+
+      input[type="range"] {
+        accent-color: #ff4b4b;
+      }
+
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(10px);
+      }
+
+      #toastHost {
+        position: fixed;
+        right: 1.25rem;
+        bottom: 1.25rem;
+        z-index: 40;
+        width: min(92vw, 380px);
+        max-height: 72vh;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .chart-shell {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .chart-shell--income {
+        aspect-ratio: 16 / 10;
+        min-height: 19rem;
+        max-height: 28rem;
+      }
+
+      .chart-shell--radar {
+        aspect-ratio: 1 / 1;
+        min-height: 17rem;
+        max-height: 22rem;
+      }
+
+      .chart-shell canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      @media (max-width: 640px) {
+        .chart-shell--income {
+          aspect-ratio: 4 / 3;
+          min-height: 15.5rem;
+        }
+
+        .chart-shell--radar {
+          min-height: 14rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="noise text-white antialiased">
+    <div class="pointer-events-none fixed inset-0 grid-bg"></div>
+
+    <div class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.42em] text-threat-blue/80">AI危機診断</p>
+          <h1 class="mt-2 text-lg font-bold tracking-[0.18em] text-white/90">AI Survival Diagnostic</h1>
+        </div>
+        <div class="rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-xs text-white/70">
+          100 JOBS / 2030 DEADLINE
+        </div>
+      </header>
+
+      <main>
+        <section class="grid min-h-[82vh] items-center gap-10 py-12 lg:grid-cols-[1.15fr_0.85fr] lg:py-20">
+          <div class="max-w-3xl">
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-threat-red/30 bg-threat-red/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.32em] text-threat-red">
+              Labor Shock Simulation
+            </p>
+            <h2 class="max-w-4xl text-5xl font-black leading-[1.05] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
+              あなたの市場価値の
+              <span class="block text-threat-red">賞味期限を算出する</span>
+            </h2>
+            <p class="mt-6 max-w-2xl text-base leading-8 text-white/70 sm:text-lg">
+              100業種データ、定型業務比率、AI活用度から、今の仕事がどこまで圧縮されうるかを数値化します。
+              診断は将来を固定するものではなく、変えるための警報です。
+            </p>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                <p class="font-mono text-xs uppercase tracking-[0.28em] text-white/45">Metric 01</p>
+                <p class="mt-3 text-3xl font-extrabold text-threat-red">AI代替率</p>
+                <p class="mt-2 text-sm text-white/60">作業圧縮のスピードを可視化</p>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                <p class="font-mono text-xs uppercase tracking-[0.28em] text-white/45">Metric 02</p>
+                <p class="mt-3 text-3xl font-extrabold text-threat-amber">職種余命</p>
+                <p class="mt-2 text-sm text-white/60">今の年収を維持できる推定年数</p>
+              </div>
+              <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                <p class="font-mono text-xs uppercase tracking-[0.28em] text-white/45">Metric 03</p>
+                <p class="mt-3 text-3xl font-extrabold text-threat-blue">生存戦略</p>
+                <p class="mt-2 text-sm text-white/60">置換を避ける再設計ポイント</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="relative">
+            <div class="cyber-border relative overflow-hidden rounded-[32px] bg-white/5 p-6 shadow-threat backdrop-blur-xl sm:p-8">
+              <div class="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-threat-blue to-transparent"></div>
+              <div class="mb-6 flex items-center justify-between">
+                <div>
+                  <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Quick Intake</p>
+                  <h3 class="mt-2 text-2xl font-bold">職務内容を照合</h3>
+                </div>
+                <span id="jobCountPill" class="rounded-full border border-white/10 bg-black/20 px-3 py-2 font-mono text-xs text-white/65">
+                  0 JOBS
+                </span>
+              </div>
+
+              <form id="diagnosticForm" class="space-y-6">
+                <div>
+                  <div class="mb-2 flex items-center justify-between">
+                    <label for="jobSearch" class="text-sm font-medium text-white/80">職種検索</label>
+                    <span id="jobCategoryLabel" class="font-mono text-xs uppercase tracking-[0.2em] text-threat-blue/80">Awaiting Match</span>
+                  </div>
+                  <div class="mb-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label for="industrySelect" class="mb-2 block text-xs font-medium text-white/60">業種を選択</label>
+                      <select
+                        id="industrySelect"
+                        class="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition focus:border-threat-blue"
+                      >
+                        <option value="all">すべての業種</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="jobSelect" class="mb-2 block text-xs font-medium text-white/60">職種を選択</label>
+                      <select
+                        id="jobSelect"
+                        class="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition focus:border-threat-blue"
+                      >
+                        <option value="">職種を選択してください</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="scan-ring relative rounded-full">
+                    <div class="scan-beam relative rounded-full">
+                      <input
+                        id="jobSearch"
+                        name="jobSearch"
+                        type="text"
+                        autocomplete="off"
+                        placeholder="例: 一般事務 / フロントエンドエンジニア / 看護師"
+                        class="relative w-full rounded-full border border-white/10 bg-black/35 px-5 py-4 pr-14 text-sm text-white outline-none ring-0 placeholder:text-white/35 focus:border-threat-blue focus:shadow-scan"
+                      />
+                    </div>
+                    <span class="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 font-mono text-xs text-threat-blue">SCAN</span>
+                  </div>
+                  <div id="jobSuggestionBox" class="mt-3 hidden rounded-3xl border border-white/10 bg-black/60 p-2 backdrop-blur"></div>
+                </div>
+
+                <div class="grid gap-5">
+                  <div class="rounded-3xl border border-white/10 bg-black/20 p-5">
+                    <div class="mb-4 flex items-center justify-between">
+                      <label for="ageRange" class="text-sm font-medium text-white/80">現在の年齢</label>
+                      <span id="ageValue" class="font-mono text-2xl font-bold text-white">32</span>
+                    </div>
+                    <input id="ageRange" type="range" min="20" max="65" value="32" class="w-full" />
+                    <div class="mt-3 flex justify-between font-mono text-xs text-white/35">
+                      <span>20</span>
+                      <span>65</span>
+                    </div>
+                  </div>
+
+                  <div class="rounded-3xl border border-white/10 bg-black/20 p-5">
+                    <div class="mb-4 flex items-center justify-between">
+                      <label for="routineRange" class="text-sm font-medium text-white/80">1日の定型業務比率</label>
+                      <span id="routineValue" class="font-mono text-2xl font-bold text-white">72%</span>
+                    </div>
+                    <input id="routineRange" type="range" min="0" max="100" value="72" class="w-full" />
+                    <div class="mt-3 flex justify-between font-mono text-xs text-white/35">
+                      <span>非定型</span>
+                      <span>完全定型</span>
+                    </div>
+                  </div>
+
+                  <div class="rounded-3xl border border-white/10 bg-black/20 p-5">
+                    <div class="mb-4 flex items-center justify-between">
+                      <label for="incomeInput" class="text-sm font-medium text-white/80">現在の年収（万円）</label>
+                      <span class="font-mono text-xs uppercase tracking-[0.2em] text-white/40">Required</span>
+                    </div>
+                    <input
+                      id="incomeInput"
+                      name="incomeInput"
+                      type="number"
+                      min="100"
+                      max="3000"
+                      step="1"
+                      value="420"
+                      class="w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white outline-none transition focus:border-threat-blue"
+                      placeholder="例: 420"
+                    />
+                    <p class="mt-3 font-mono text-xs text-white/40">入力例: 420 = 420万円</p>
+                  </div>
+
+                  <div class="rounded-3xl border border-white/10 bg-black/20 p-5">
+                    <div class="mb-4 flex items-center justify-between">
+                      <span class="text-sm font-medium text-white/80">AI活用レベル</span>
+                      <span id="aiSkillLabel" class="font-mono text-xs uppercase tracking-[0.2em] text-threat-blue">Basic</span>
+                    </div>
+                    <div id="aiSkillOptions" class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <button type="button" data-skill="none" class="skill-chip rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/70 transition hover:border-threat-blue/60">未使用</button>
+                      <button type="button" data-skill="basic" class="skill-chip rounded-2xl border border-threat-blue bg-threat-blue/15 px-3 py-3 text-sm font-semibold text-white transition">基本利用</button>
+                      <button type="button" data-skill="intermediate" class="skill-chip rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/70 transition hover:border-threat-blue/60">業務適用</button>
+                      <button type="button" data-skill="advanced" class="skill-chip rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/70 transition hover:border-threat-blue/60">自動化主導</button>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  id="runDiagnosticBtn"
+                  type="submit"
+                  class="w-full rounded-full bg-threat-red px-6 py-4 text-base font-black tracking-[0.16em] text-black transition hover:bg-[#ff6363]"
+                >
+                  診断を開始する
+                </button>
+                <p id="formError" class="hidden rounded-2xl border border-threat-red/35 bg-threat-red/10 px-4 py-3 text-sm text-threat-red"></p>
+                <p class="text-xs leading-6 text-white/45">
+                  このシミュレーションは統計的な傾向を用いた参考値です。結果は確定した未来ではなく、行動の優先順位を決めるための警報として扱ってください。
+                </p>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section id="resultSection" class="hidden pb-16">
+          <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="font-mono text-xs uppercase tracking-[0.34em] text-white/45">Result Area</p>
+              <h3 class="mt-2 text-3xl font-black tracking-[-0.03em] sm:text-4xl">診断結果</h3>
+            </div>
+            <div class="flex gap-3">
+              <button id="captureBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
+                画像として保存
+              </button>
+              <button id="shareXBtn" type="button" class="rounded-full bg-threat-blue px-4 py-3 text-sm font-black text-black transition hover:bg-[#46ecff]">
+                X に投稿
+              </button>
+            </div>
+          </div>
+
+          <div id="shareCaptureArea" class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div class="result-backdrop cyber-border relative overflow-hidden rounded-[36px] p-6 shadow-threat sm:p-8">
+              <div class="absolute right-0 top-0 h-36 w-36 rounded-full bg-threat-red/12 blur-3xl"></div>
+              <div class="absolute bottom-0 left-0 h-36 w-36 rounded-full bg-threat-blue/12 blur-3xl"></div>
+
+              <div class="relative z-10 grid gap-6">
+                <div class="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p id="warningBadge" class="inline-flex rounded-full border border-threat-red/30 bg-threat-red/10 px-4 py-2 font-mono text-xs uppercase tracking-[0.3em] text-threat-red">
+                      Awaiting Result
+                    </p>
+                    <h4 id="matchedJobTitle" class="mt-4 text-2xl font-bold sm:text-3xl">職種を選択してください</h4>
+                    <p id="matchedIndustry" class="mt-2 text-sm text-white/55">業界データ未照合</p>
+                  </div>
+                  <div class="rounded-3xl border border-white/10 bg-black/30 px-5 py-4 text-right">
+                    <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45">Escape Index</p>
+                    <p id="escapeIndexValue" class="mt-1 font-mono text-3xl font-extrabold text-white">00</p>
+                  </div>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+                  <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
+                    <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">AI Replacement Rate</p>
+                    <div class="mt-5 flex items-end gap-3">
+                      <span id="replacementRateValue" class="font-mono text-6xl font-black leading-none text-threat-red sm:text-8xl">0</span>
+                      <span class="mb-2 font-mono text-2xl font-bold text-white/70 sm:text-3xl">%</span>
+                    </div>
+                    <div class="mt-5 overflow-hidden rounded-full bg-white/10">
+                      <div id="riskMeterFill" class="meter-track h-3 w-0 transition-all duration-1000"></div>
+                    </div>
+                    <p id="scaryCopy" class="mt-5 text-sm leading-7 text-white/70">
+                      診断前です。職種を選んで診断を開始してください。
+                    </p>
+                  </div>
+
+                  <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
+                    <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Career Lifespan</p>
+                    <div class="mt-4 flex items-end gap-3">
+                      <span id="yearsLeftValue" class="font-mono text-5xl font-black leading-none text-threat-amber sm:text-7xl">0.0</span>
+                      <span class="mb-2 font-mono text-xl font-bold text-white/70">年</span>
+                    </div>
+                    <p id="daysLeftValue" class="mt-3 font-mono text-sm text-white/55">0日</p>
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45">維持確率</p>
+                        <p id="incomeProbabilityValue" class="mt-2 font-mono text-2xl font-bold text-white">0%</p>
+                      </div>
+                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45">AI準備度</p>
+                        <p id="aiReadinessValue" class="mt-2 font-mono text-2xl font-bold text-white">0</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[1fr_0.92fr]">
+                  <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
+                    <div class="flex items-center justify-between gap-4">
+                      <div>
+                        <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Income Forecast</p>
+                        <h5 class="mt-2 text-lg font-bold">平均年収と5年後の予測</h5>
+                      </div>
+                      <div class="text-right text-sm text-white/55">
+                        <p>現在平均</p>
+                        <p id="medianIncomeLabel" class="font-mono text-xl font-bold text-white">¥0</p>
+                      </div>
+                    </div>
+                    <div class="chart-shell chart-shell--income mt-6 rounded-3xl bg-white/5">
+                      <canvas id="incomeChart" class="w-full"></canvas>
+                    </div>
+                  </div>
+
+                  <div class="grid gap-6">
+                    <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
+                      <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Summary</p>
+                      <p id="summaryText" class="mt-4 text-sm leading-7 text-white/70"></p>
+                    </div>
+                    <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
+                      <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Reskilling Path</p>
+                      <ul id="recommendedActions" class="mt-4 space-y-3 text-sm leading-7 text-white/75"></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="grid gap-6">
+              <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Main Risk Factors</p>
+                <ul id="riskFactors" class="mt-4 space-y-3 text-sm leading-7 text-white/70"></ul>
+              </div>
+              <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Defense Factors</p>
+                <ul id="defenseFactors" class="mt-4 space-y-3 text-sm leading-7 text-white/70"></ul>
+              </div>
+              <a
+                id="ctaLink"
+                href="https://example.com/ai-survival-strategy"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group rounded-[32px] border border-threat-red/35 bg-threat-red px-6 py-6 text-black shadow-threat transition hover:bg-[#ff6363]"
+              >
+                <p class="font-mono text-xs uppercase tracking-[0.28em] text-black/65">Next Action</p>
+                <p class="mt-3 text-2xl font-black leading-tight">生存戦略を今すぐ確認する</p>
+                <p class="mt-3 text-sm leading-7 text-black/75">今の職種を延命するのか、移るのか。次の90日でやることを整理します。</p>
+                <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold">Action Plan <span class="transition group-hover:translate-x-1">→</span></span>
+              </a>
+
+              <section class="rounded-[32px] border border-emerald-400/30 bg-emerald-500/10 p-6">
+                <p class="font-mono text-xs uppercase tracking-[0.3em] text-emerald-300">Survival Strategy Roadmap</p>
+                <h4 class="mt-3 text-xl font-black text-emerald-100">次なる行動</h4>
+                <div class="chart-shell chart-shell--radar mt-5 rounded-3xl bg-black/25">
+                  <canvas id="skillRadarChart" class="w-full"></canvas>
+                </div>
+                <div class="mt-5 grid gap-3">
+                  <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">Step 1 / 今すぐ</p>
+                    <p id="stepNow" class="mt-2 text-sm leading-6 text-white/80"></p>
+                  </article>
+                  <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">Step 2 / 3ヶ月以内</p>
+                    <p id="step3Months" class="mt-2 text-sm leading-6 text-white/80"></p>
+                  </article>
+                  <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">Step 3 / 6ヶ月後</p>
+                    <p id="step6Months" class="mt-2 text-sm leading-6 text-white/80"></p>
+                  </article>
+                </div>
+                <div class="mt-5 rounded-2xl border border-emerald-300/25 bg-emerald-900/20 p-4">
+                  <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">ROI 可視化</p>
+                  <p id="roiText" class="mt-2 text-sm leading-6 text-emerald-100/90"></p>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toastHost" class="pointer-events-none fixed bottom-5 right-5 z-40 w-[min(92vw,380px)]"></div>
+
+    <div id="loadingOverlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-xl">
+      <div class="w-[min(92vw,680px)] rounded-[36px] border border-white/10 bg-[#0d1015]/95 p-8 shadow-threat">
+        <div class="mb-8 flex items-center justify-between">
+          <div>
+            <p class="font-mono text-xs uppercase tracking-[0.34em] text-white/40">Processing</p>
+            <h3 class="mt-3 text-3xl font-black">診断モデルを走査中</h3>
+          </div>
+          <div class="relative h-16 w-16 rounded-full border border-white/10 bg-white/5">
+            <div class="absolute inset-3 rounded-full border border-threat-blue/30"></div>
+            <div class="absolute left-1/2 top-1/2 h-1 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-threat-blue shadow-[0_0_20px_rgba(0,229,255,0.85)] animate-pulse"></div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="overflow-hidden rounded-full bg-white/10">
+            <div id="loadingProgress" class="h-3 w-0 bg-gradient-to-r from-threat-blue via-threat-amber to-threat-red transition-all duration-300"></div>
+          </div>
+          <p id="loadingText" class="font-mono text-sm tracking-[0.08em] text-white/70">最新のAIモデルと照合中...</p>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="severityDialog" class="w-[min(92vw,560px)] rounded-[32px] border border-white/10 bg-[#0f1217] p-0 text-white shadow-threat">
+      <div class="p-8">
+        <p class="font-mono text-xs uppercase tracking-[0.34em] text-threat-red">Sensitive Result</p>
+        <h3 class="mt-4 text-3xl font-black leading-tight">診断結果は厳しい見立てを含みます。閲覧しますか？</h3>
+        <p class="mt-4 text-sm leading-7 text-white/65">
+          代替率と職種余命は、統計モデルに基づく警戒値として表示されます。数値は恐怖を煽るためではなく、今すぐ動く根拠を可視化するためのものです。
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button id="cancelSeverityBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10">
+            いったん戻る
+          </button>
+          <button id="confirmSeverityBtn" type="button" class="rounded-full bg-threat-red px-5 py-3 text-sm font-black text-black transition hover:bg-[#ff6363]">
+            結果を表示する
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      const DEADLINE_YEAR = 2030;
+      const CURRENT_YEAR = 2026;
+      const MARKET_VOLATILITY = [
+        { keywords: ["IT", "SaaS", "ソフトウェア", "金融", "保険", "事務"], factor: 1.5 },
+        { keywords: ["販売", "接客", "コールセンター", "小売", "物流"], factor: 1.25 },
+        { keywords: ["専門職", "メディア", "教育"], factor: 1.0 },
+        { keywords: ["建設", "公共", "現場作業", "インフラ"], factor: 0.7 },
+        { keywords: ["医療", "介護", "保育"], factor: 0.8 },
+      ];
+      const CATEGORY_SKILLS = {
+        "事務": ["AI業務設計", "例外処理の高度化", "顧客折衝", "業務改善"],
+        "IT": ["要件定義", "AI協働開発", "プロダクト設計", "高難度レビュー"],
+        "専門職": ["高信頼説明力", "監査視点", "複雑案件対応", "交渉"],
+        "現場作業": ["設備保全", "安全管理", "現場監督", "複合機械運用"],
+        "医療・介護": ["高度対人支援", "ケア設計", "多職種連携", "地域支援"],
+        "販売・接客": ["高単価提案", "顧客関係構築", "店舗運営", "CRM運用"],
+      };
+      const CATEGORY_INCOME = {
+        "事務": 4200000,
+        "IT": 6200000,
+        "専門職": 7800000,
+        "現場作業": 4700000,
+        "医療・介護": 4600000,
+        "販売・接客": 5100000,
+      };
+      const ACTIVITY_TEMPLATES = [
+        "{age}歳 {job}の診断が実行されました",
+        "{age}歳 {job}の結果が更新されました",
+        "{age}歳 {job}の診断が実行されました",
+        "{age}歳 {job}の職種余命を算出しました",
+      ];
+      const FALLBACK_JOBS = ["一般事務", "営業職", "看護師", "施工管理", "Webデザイナー"];
+      const LOADING_STEPS = [
+        "最新のAIモデルと照合中...",
+        "2030年の労働市場をシミュレート中...",
+        "業界ごとのAI導入速度を再計算中...",
+        "代替されやすい担当業務を抽出中...",
+        "余命曲線を算出中...",
+      ];
+
+      const state = {
+        jobMaster: null,
+        jobs: [],
+        selectedJob: null,
+        aiSkill: "basic",
+        incomeChartInstance: null,
+        radarChartInstance: null,
+        pendingResult: null,
+        loadingTimer: null,
+        loadingProgressTimer: null,
+        toastTimer: null,
+      };
+
+      const els = {
+        diagnosticForm: document.getElementById("diagnosticForm"),
+        industrySelect: document.getElementById("industrySelect"),
+        jobSelect: document.getElementById("jobSelect"),
+        jobSearch: document.getElementById("jobSearch"),
+        jobSuggestionBox: document.getElementById("jobSuggestionBox"),
+        jobCategoryLabel: document.getElementById("jobCategoryLabel"),
+        jobCountPill: document.getElementById("jobCountPill"),
+        ageRange: document.getElementById("ageRange"),
+        ageValue: document.getElementById("ageValue"),
+        routineRange: document.getElementById("routineRange"),
+        routineValue: document.getElementById("routineValue"),
+        incomeInput: document.getElementById("incomeInput"),
+        formError: document.getElementById("formError"),
+        aiSkillOptions: document.getElementById("aiSkillOptions"),
+        aiSkillLabel: document.getElementById("aiSkillLabel"),
+        loadingOverlay: document.getElementById("loadingOverlay"),
+        loadingText: document.getElementById("loadingText"),
+        loadingProgress: document.getElementById("loadingProgress"),
+        severityDialog: document.getElementById("severityDialog"),
+        confirmSeverityBtn: document.getElementById("confirmSeverityBtn"),
+        cancelSeverityBtn: document.getElementById("cancelSeverityBtn"),
+        resultSection: document.getElementById("resultSection"),
+        warningBadge: document.getElementById("warningBadge"),
+        matchedJobTitle: document.getElementById("matchedJobTitle"),
+        matchedIndustry: document.getElementById("matchedIndustry"),
+        escapeIndexValue: document.getElementById("escapeIndexValue"),
+        replacementRateValue: document.getElementById("replacementRateValue"),
+        riskMeterFill: document.getElementById("riskMeterFill"),
+        yearsLeftValue: document.getElementById("yearsLeftValue"),
+        daysLeftValue: document.getElementById("daysLeftValue"),
+        incomeProbabilityValue: document.getElementById("incomeProbabilityValue"),
+        aiReadinessValue: document.getElementById("aiReadinessValue"),
+        scaryCopy: document.getElementById("scaryCopy"),
+        medianIncomeLabel: document.getElementById("medianIncomeLabel"),
+        summaryText: document.getElementById("summaryText"),
+        recommendedActions: document.getElementById("recommendedActions"),
+        riskFactors: document.getElementById("riskFactors"),
+        defenseFactors: document.getElementById("defenseFactors"),
+        incomeChart: document.getElementById("incomeChart"),
+        toastHost: document.getElementById("toastHost"),
+        captureBtn: document.getElementById("captureBtn"),
+        shareXBtn: document.getElementById("shareXBtn"),
+        shareCaptureArea: document.getElementById("shareCaptureArea"),
+        skillRadarChart: document.getElementById("skillRadarChart"),
+        stepNow: document.getElementById("stepNow"),
+        step3Months: document.getElementById("step3Months"),
+        step6Months: document.getElementById("step6Months"),
+        roiText: document.getElementById("roiText"),
+      };
+
+      init();
+
+      async function init() {
+        bindEvents();
+        updateRangeLabels();
+        await loadJobs();
+        startToastLoop();
+      }
+
+      function bindEvents() {
+        els.industrySelect.addEventListener("change", handleIndustryChange);
+        els.jobSelect.addEventListener("change", handleJobSelectChange);
+        els.jobSearch.addEventListener("input", handleJobInput);
+        els.jobSearch.addEventListener("focus", handleJobInput);
+        document.addEventListener("click", handleOutsideSuggestionClick);
+        els.ageRange.addEventListener("input", updateRangeLabels);
+        els.routineRange.addEventListener("input", updateRangeLabels);
+        els.aiSkillOptions.addEventListener("click", handleSkillSelect);
+        els.diagnosticForm.addEventListener("submit", handleFormSubmit);
+        els.confirmSeverityBtn.addEventListener("click", confirmSeverity);
+        els.cancelSeverityBtn.addEventListener("click", cancelSeverity);
+        els.captureBtn.addEventListener("click", captureResult);
+        els.shareXBtn.addEventListener("click", shareToX);
+      }
+
+      async function loadJobs() {
+        try {
+          const response = await fetch("./job-master.json");
+          if (!response.ok) {
+            throw new Error("job-master.json の取得に失敗しました");
+          }
+          state.jobMaster = await response.json();
+          state.jobs = Array.isArray(state.jobMaster.jobs) ? state.jobMaster.jobs : [];
+          els.jobCountPill.textContent = `${state.jobs.length} JOBS`;
+          populateIndustrySelect();
+          populateJobSelectForCategory("all");
+          if (state.jobs.length > 0) {
+            selectJob(state.jobs[0], false);
+          }
+        } catch (error) {
+          console.error(error);
+          els.jobCategoryLabel.textContent = "Load Failed";
+          els.jobSuggestionBox.classList.remove("hidden");
+          els.jobSuggestionBox.innerHTML = '<p class="px-4 py-3 text-sm text-threat-red">job-master.json を読み込めませんでした。サーバー経由でページを開いてください。</p>';
+        }
+      }
+
+      function populateIndustrySelect() {
+        const categories = dedupe(
+          state.jobs.map((job) => job.category || job.industry_name || job.industryName || "その他")
+        );
+        els.industrySelect.innerHTML = [
+          '<option value="all">すべての業種</option>',
+          ...categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`),
+        ].join("");
+        els.industrySelect.value = "all";
+      }
+
+      function populateJobSelectForCategory(category) {
+        const filtered = state.jobs.filter((job) => {
+          if (category === "all") return true;
+          const jobCategory = job.category || job.industry_name || job.industryName || "その他";
+          return jobCategory === category;
+        });
+
+        els.jobSelect.innerHTML = [
+          '<option value="">職種を選択してください</option>',
+          ...filtered.map((job) => {
+            const code = escapeHtml(job.job_code || job.jobCode || "");
+            const title = escapeHtml(job.job_title || job.jobTitle || "");
+            return `<option value="${code}">${title}</option>`;
+          }),
+        ].join("");
+
+        const selectedCode = state.selectedJob ? (state.selectedJob.job_code || state.selectedJob.jobCode || "") : "";
+        const hasSelected = filtered.some((job) => (job.job_code || job.jobCode || "") === selectedCode);
+        els.jobSelect.value = hasSelected ? selectedCode : "";
+      }
+
+      function handleIndustryChange() {
+        const category = els.industrySelect.value;
+        populateJobSelectForCategory(category);
+      }
+
+      function handleJobSelectChange() {
+        const code = els.jobSelect.value;
+        const job = state.jobs.find((item) => (item.job_code || item.jobCode || "") === code);
+        if (job) {
+          selectJob(job, true);
+        }
+      }
+
+      function handleJobInput() {
+        const keyword = els.jobSearch.value.trim().toLowerCase();
+        const candidates = state.jobs
+          .filter((job) => {
+            const title = String(job.job_title || job.jobTitle || "").toLowerCase();
+            const category = String(job.category || job.industry_name || job.industryName || "").toLowerCase();
+            return !keyword || title.includes(keyword) || category.includes(keyword);
+          })
+          .slice(0, 8);
+
+        renderSuggestions(candidates, keyword);
+      }
+
+      function renderSuggestions(candidates, keyword) {
+        if (!candidates.length) {
+          els.jobSuggestionBox.classList.remove("hidden");
+          els.jobSuggestionBox.innerHTML = '<p class="px-4 py-3 text-sm text-white/55">一致する職種が見つかりません。</p>';
+          return;
+        }
+
+        els.jobSuggestionBox.classList.remove("hidden");
+        els.jobSuggestionBox.innerHTML = candidates
+          .map((job) => {
+            const title = escapeHtml(job.job_title || job.jobTitle || "");
+            const category = escapeHtml(job.category || job.industry_name || job.industryName || "その他");
+            const risk = Math.round((Number(job.base_replacement_rate || job.baseReplacementRate || 0) || 0) * 100);
+            const highlight = keyword && title.toLowerCase().includes(keyword) ? "border-threat-blue/35 bg-threat-blue/10" : "border-white/10 bg-white/5";
+            return `
+              <button
+                type="button"
+                data-code="${escapeHtml(job.job_code || job.jobCode || "")}"
+                class="job-suggestion mb-2 flex w-full items-center justify-between rounded-2xl border ${highlight} px-4 py-3 text-left transition hover:border-threat-blue/55 hover:bg-white/10"
+              >
+                <span>
+                  <span class="block text-sm font-semibold text-white">${title}</span>
+                  <span class="mt-1 block font-mono text-xs uppercase tracking-[0.2em] text-white/45">${category}</span>
+                </span>
+                <span class="font-mono text-sm font-bold text-threat-red">${risk}%</span>
+              </button>
+            `;
+          })
+          .join("");
+
+        els.jobSuggestionBox.querySelectorAll(".job-suggestion").forEach((button) => {
+          button.addEventListener("click", () => {
+            const code = button.getAttribute("data-code");
+            const job = state.jobs.find((item) => (item.job_code || item.jobCode) === code);
+            if (job) {
+              selectJob(job, true);
+            }
+          });
+        });
+      }
+
+      function handleOutsideSuggestionClick(event) {
+        if (els.jobSuggestionBox.contains(event.target) || els.jobSearch.contains(event.target)) {
+          return;
+        }
+        els.jobSuggestionBox.classList.add("hidden");
+      }
+
+      function selectJob(job, closeBox) {
+        state.selectedJob = job;
+        els.jobSearch.value = job.job_title || job.jobTitle || "";
+        const category = job.category || job.industry_name || job.industryName || "その他";
+        els.jobCategoryLabel.textContent = category.toUpperCase();
+        els.industrySelect.value = category;
+        populateJobSelectForCategory(category);
+        const code = job.job_code || job.jobCode || "";
+        els.jobSelect.value = code;
+        if (closeBox) {
+          els.jobSuggestionBox.classList.add("hidden");
+        }
+      }
+
+      function updateRangeLabels() {
+        els.ageValue.textContent = els.ageRange.value;
+        els.routineValue.textContent = `${els.routineRange.value}%`;
+      }
+
+      function handleSkillSelect(event) {
+        const button = event.target.closest(".skill-chip");
+        if (!button) {
+          return;
+        }
+
+        state.aiSkill = button.dataset.skill;
+        els.aiSkillLabel.textContent = state.aiSkill;
+        els.aiSkillOptions.querySelectorAll(".skill-chip").forEach((chip) => {
+          const active = chip === button;
+          chip.className = active
+            ? "skill-chip rounded-2xl border border-threat-blue bg-threat-blue/15 px-3 py-3 text-sm font-semibold text-white transition"
+            : "skill-chip rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/70 transition hover:border-threat-blue/60";
+        });
+      }
+
+      function handleFormSubmit(event) {
+        event.preventDefault();
+        const validationError = validateInputs();
+        if (validationError) {
+          els.formError.textContent = validationError;
+          els.formError.classList.remove("hidden");
+          return;
+        }
+
+        els.formError.classList.add("hidden");
+
+        startLoading();
+        const result = calculateResult();
+        state.pendingResult = result;
+
+        window.setTimeout(() => {
+          stopLoading();
+          if (typeof els.severityDialog.showModal === "function") {
+            els.severityDialog.showModal();
+          } else {
+            const accepted = window.confirm("診断結果は厳しい見立てを含みます。表示しますか？");
+            if (accepted) {
+              commitPendingResult();
+            }
+          }
+        }, 3000);
+      }
+
+      function validateInputs() {
+        if (!state.selectedJob) {
+          els.jobSearch.focus();
+          handleJobInput();
+          return "職種を選択してください。";
+        }
+
+        const age = Number(els.ageRange.value);
+        const routine = Number(els.routineRange.value);
+        const income = Number(els.incomeInput.value);
+        if (!Number.isFinite(age) || age < 20 || age > 65) {
+          return "年齢は20〜65で入力してください。";
+        }
+        if (!Number.isFinite(routine) || routine < 0 || routine > 100) {
+          return "定型業務比率は0〜100で入力してください。";
+        }
+        if (!Number.isFinite(income) || income <= 0) {
+          els.incomeInput.focus();
+          return "現在の年収（万円）を入力してください。";
+        }
+        if (!["none", "basic", "intermediate", "advanced"].includes(state.aiSkill)) {
+          return "AI活用レベルを選択してください。";
+        }
+        return "";
+      }
+
+      function startLoading() {
+        clearInterval(state.loadingTimer);
+        clearInterval(state.loadingProgressTimer);
+        els.loadingOverlay.classList.remove("hidden");
+        els.loadingOverlay.classList.add("flex");
+        els.loadingText.textContent = LOADING_STEPS[0];
+        els.loadingProgress.style.width = "0%";
+        let stepIndex = 0;
+        let progress = 0;
+
+        state.loadingTimer = window.setInterval(() => {
+          stepIndex = (stepIndex + 1) % LOADING_STEPS.length;
+          els.loadingText.textContent = LOADING_STEPS[stepIndex];
+        }, 420);
+
+        state.loadingProgressTimer = window.setInterval(() => {
+          progress = Math.min(progress + Math.random() * 17 + 9, 96);
+          els.loadingProgress.style.width = `${progress}%`;
+        }, 220);
+      }
+
+      function stopLoading() {
+        clearInterval(state.loadingTimer);
+        clearInterval(state.loadingProgressTimer);
+        els.loadingProgress.style.width = "100%";
+        window.setTimeout(() => {
+          els.loadingOverlay.classList.add("hidden");
+          els.loadingOverlay.classList.remove("flex");
+        }, 180);
+      }
+
+      function cancelSeverity() {
+        state.pendingResult = null;
+        els.severityDialog.close();
+      }
+
+      function confirmSeverity() {
+        els.severityDialog.close();
+        commitPendingResult();
+      }
+
+      function commitPendingResult() {
+        if (!state.pendingResult) {
+          return;
+        }
+
+        renderResult(state.pendingResult);
+        state.pendingResult = null;
+      }
+
+      function calculateResult() {
+        const job = state.selectedJob;
+        const age = Number(els.ageRange.value);
+        const routineRatio = Number(els.routineRange.value);
+        const currentIncome = Number(els.incomeInput.value) * 10000;
+        const aiSkillScore = normalizeInput(state.aiSkill);
+        const jobId = Number(String(job.job_code || "").replace(/\D/g, "")) || 0;
+        const baseRisk = clamp01(Number(job.base_replacement_rate || job.baseReplacementRate || 0.5));
+        const marketVolatility = getMarketVolatility(job.category || job.industry_name || job.industryName || "その他");
+        const randomFactor = 0.98 + Math.random() * 0.04;
+        const categoryShield = getCategoryShield(job.category || job.industry_name || job.industryName || "その他");
+
+        const replacementRateRaw = (baseRisk * (routineRatio / 100)) / (1 + aiSkillScore * 0.2);
+        const polynomialAdjust = 0.04 * Math.pow(routineRatio / 100, 2) - 0.03 * Math.pow(aiSkillScore, 2);
+        const adjustedRisk = clamp(
+          replacementRateRaw * marketVolatility * randomFactor + polynomialAdjust - categoryShield * 0.06,
+          0.02,
+          0.99
+        );
+
+        const baseLifespan = (10 / (Math.max(adjustedRisk, 0.03) * 1.5)) * (1 - age / 100);
+        const escapeIndex = clamp((age - 45) / 20, 0, 1);
+        const deadlineYears = Math.max(0.5, DEADLINE_YEAR - CURRENT_YEAR);
+        const singularityCurve = deadlineYears * Math.exp(-5.2 * Math.max(0, adjustedRisk - 0.18));
+        const yearsLeft = clamp(baseLifespan * 0.16 + singularityCurve + escapeIndex * 0.9, 0.3, deadlineYears + 1.2);
+        const daysLeft = Math.max(1, Math.round(yearsLeft * 365));
+
+        const replacementRate = Math.round(adjustedRisk * 10000) / 100;
+        const aiReadinessScore = Math.round(aiSkillScore * 100);
+        const incomeProbability = Math.round(clamp01((1 - adjustedRisk) * 0.78 + aiSkillScore * 0.15 + categoryShield * 0.07) * 100);
+        const category = job.category || job.industry_name || job.industryName || "その他";
+        const medianIncome = CATEGORY_INCOME[category] || 5000000;
+        const futureIncome = Math.round(currentIncome * (1 - adjustedRisk));
+        const predictedIncome = Math.round(medianIncome * clamp(1 - adjustedRisk * 0.76 + aiSkillScore * 0.08, 0.2, 0.98));
+        const warning = generateScaryCopy(adjustedRisk, yearsLeft);
+        const summary = buildSummary(job, adjustedRisk, yearsLeft);
+        const recommendedActions = suggestPath(job, adjustedRisk);
+        const riskFactors = buildRiskFactors(job, routineRatio, marketVolatility);
+        const defenseFactors = buildDefenseFactors(job, aiSkillScore, categoryShield);
+        const roadmap = buildRoadmap(job, adjustedRisk, futureIncome);
+
+        return {
+          jobId,
+          warningLabel: warning.warningLabel,
+          scaryCopy: warning.scaryCopy,
+          matchedJobTitle: job.job_title || job.jobTitle || "不明",
+          matchedIndustry: category,
+          replacementRate,
+          yearsLeft,
+          daysLeft,
+          incomeProbability,
+          aiReadinessScore,
+          escapeIndex: Math.round(escapeIndex * 100),
+          medianIncome,
+          predictedIncome,
+          currentIncome,
+          futureIncome,
+          summary,
+          recommendedActions,
+          riskFactors,
+          defenseFactors,
+          roadmap,
+          aiSkillScore,
+          routineRatio,
+        };
+      }
+
+      function renderResult(result) {
+        els.resultSection.classList.remove("hidden");
+        els.resultSection.classList.add("animate-fadeUp");
+        els.warningBadge.textContent = result.warningLabel;
+        els.matchedJobTitle.textContent = result.matchedJobTitle;
+        els.matchedIndustry.textContent = `${result.matchedIndustry} / 2030年までの圧縮圧力を反映`;
+        els.escapeIndexValue.textContent = String(result.escapeIndex).padStart(2, "0");
+        els.scaryCopy.textContent = result.scaryCopy;
+        els.incomeProbabilityValue.textContent = `${result.incomeProbability}%`;
+        els.aiReadinessValue.textContent = String(result.aiReadinessScore);
+        els.medianIncomeLabel.textContent = formatYen(result.medianIncome);
+        els.summaryText.textContent = result.summary;
+        els.riskMeterFill.style.width = `${Math.min(result.replacementRate, 100)}%`;
+        els.daysLeftValue.textContent = `${result.daysLeft.toLocaleString("ja-JP")}日`;
+
+        renderList(els.recommendedActions, result.recommendedActions);
+        renderList(els.riskFactors, result.riskFactors);
+        renderList(els.defenseFactors, result.defenseFactors);
+        drawIncomeChart(result.currentIncome, result.futureIncome, result.aiSkillScore);
+        drawSkillRadarChart(result);
+        renderRoadmap(result);
+        animateNumber(els.replacementRateValue, result.replacementRate, 1200, 2);
+        animateNumber(els.yearsLeftValue, result.yearsLeft, 1200, 2);
+        updateThreatBackground(result.replacementRate);
+
+        window.setTimeout(() => {
+          els.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 120);
+      }
+
+      function renderList(container, items) {
+        container.innerHTML = items
+          .map((item) => `<li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">${escapeHtml(item)}</li>`)
+          .join("");
+      }
+
+      function drawIncomeChart(currentIncome, futureIncome, aiSkillScore) {
+        const ctx = els.incomeChart.getContext("2d");
+        if (!ctx || typeof Chart === "undefined") {
+          return;
+        }
+
+        if (state.incomeChartInstance) {
+          state.incomeChartInstance.destroy();
+        }
+
+        const years = ["現在", "1年後", "2年後", "3年後", "4年後", "5年後"];
+        const decline = [0, 1, 2, 3, 4, 5].map((i) => {
+          const ratio = Math.exp(-0.18 * i) * (futureIncome / Math.max(currentIncome, 1)) + (1 - futureIncome / Math.max(currentIncome, 1)) * Math.exp(-0.55 * i);
+          return Math.max(0, Math.round(currentIncome * ratio));
+        });
+        decline[5] = futureIncome;
+
+        const survivalRoute = [0, 1, 2, 3, 4, 5].map((i) => {
+          const recover = 1 - Math.exp(-0.7 * i);
+          const value = currentIncome * (1 - 0.28 * (1 - aiSkillScore)) + currentIncome * 0.16 * recover;
+          return Math.round(Math.max(value, currentIncome * 0.7));
+        });
+
+        const notePlugin = {
+          id: "annotationAiShift",
+          afterDraw(chart) {
+            const { ctx: chartCtx, scales } = chart;
+            const x = scales.x.getPixelForValue(2);
+            const y = scales.y.getPixelForValue(decline[2]);
+            chartCtx.save();
+            chartCtx.strokeStyle = "rgba(255, 75, 75, 0.8)";
+            chartCtx.lineWidth = 1.2;
+            chartCtx.setLineDash([5, 5]);
+            chartCtx.beginPath();
+            chartCtx.moveTo(x, scales.y.top + 8);
+            chartCtx.lineTo(x, scales.y.bottom - 8);
+            chartCtx.stroke();
+            chartCtx.setLineDash([]);
+            chartCtx.fillStyle = "rgba(255, 75, 75, 0.95)";
+            chartCtx.font = "700 12px JetBrains Mono";
+            chartCtx.fillText("AIによる業務代替開始", x + 8, y - 10);
+            chartCtx.restore();
+          },
+        };
+
+        state.incomeChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: years,
+            datasets: [
+              {
+                label: "未リスキリング",
+                data: decline,
+                borderColor: "#FF4B4B",
+                backgroundColor: "rgba(255,75,75,0.15)",
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.32,
+              },
+              {
+                label: "生存ルート",
+                data: survivalRoute,
+                borderColor: "#00E5FF",
+                borderDash: [7, 5],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.28,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: "rgba(255,255,255,0.78)", font: { family: "JetBrains Mono" } },
+              },
+              tooltip: {
+                callbacks: {
+                  label(context) {
+                    return `${context.dataset.label}: ${formatYen(context.parsed.y)}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: "rgba(255,255,255,0.58)" },
+                grid: { color: "rgba(255,255,255,0.08)" },
+              },
+              y: {
+                ticks: {
+                  color: "rgba(255,255,255,0.58)",
+                  callback(value) {
+                    return formatYen(Number(value));
+                  },
+                },
+                grid: { color: "rgba(255,255,255,0.08)" },
+              },
+            },
+          },
+          plugins: [notePlugin],
+        });
+      }
+
+      function drawSkillRadarChart(result) {
+        const ctx = els.skillRadarChart.getContext("2d");
+        if (!ctx || typeof Chart === "undefined") {
+          return;
+        }
+
+        if (state.radarChartInstance) {
+          state.radarChartInstance.destroy();
+        }
+
+        const labels = ["定型業務", "AI活用", "上流設計", "対人価値", "現場判断"];
+        const current = [
+          clamp(result.routineRatio, 10, 100),
+          result.aiReadinessScore,
+          clamp(30 + result.aiReadinessScore * 0.2, 10, 100),
+          clamp(42 + result.escapeIndex * 0.2, 10, 100),
+          clamp(36 + (100 - result.replacementRate) * 0.2, 10, 100),
+        ];
+        const target = [
+          clamp(100 - result.routineRatio + 20, 20, 100),
+          clamp(result.aiReadinessScore + 30, 20, 100),
+          78,
+          74,
+          70,
+        ];
+
+        state.radarChartInstance = new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "現在",
+                data: current,
+                borderColor: "rgba(255, 75, 75, 0.95)",
+                backgroundColor: "rgba(255, 75, 75, 0.22)",
+                pointRadius: 2,
+              },
+              {
+                label: "獲得すべきスキル",
+                data: target,
+                borderColor: "rgba(16, 185, 129, 1)",
+                backgroundColor: "rgba(16, 185, 129, 0.18)",
+                pointRadius: 2,
+                borderDash: [6, 4],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: "rgba(220,252,231,0.95)",
+                  font: { family: "JetBrains Mono" },
+                },
+              },
+            },
+            scales: {
+              r: {
+                min: 0,
+                max: 100,
+                ticks: { display: false },
+                grid: { color: "rgba(255,255,255,0.12)" },
+                pointLabels: { color: "rgba(220,252,231,0.95)", font: { size: 11 } },
+              },
+            },
+          },
+        });
+      }
+
+      function buildRoadmap(job, risk, futureIncome) {
+        const advice = generateAdvice(job.job_code || job.jobCode || "");
+        const intensity = risk >= 0.8 ? "最優先" : risk >= 0.6 ? "高" : "中";
+        const reskillingCost = Math.round(Math.max(250000, futureIncome * 0.09));
+        return {
+          now: `優先度${intensity}: ${advice.now}`,
+          threeMonths: advice.threeMonths,
+          sixMonths: advice.sixMonths,
+          reskillingCost,
+        };
+      }
+
+      function renderRoadmap(result) {
+        els.stepNow.textContent = result.roadmap.now;
+        els.step3Months.textContent = result.roadmap.threeMonths;
+        els.step6Months.textContent = result.roadmap.sixMonths;
+
+        const protectedLifetime = Math.max(0, (result.currentIncome - result.futureIncome) * 8);
+        const roi = protectedLifetime - result.roadmap.reskillingCost;
+        els.roiText.textContent = `推定投資額 ${formatYen(result.roadmap.reskillingCost)} に対し、守れる生涯賃金差分は約 ${formatYen(protectedLifetime)}。想定ROIは ${formatYen(roi)}。`;
+      }
+
+      function generateAdvice(jobId) {
+        const code = String(jobId || "").toUpperCase();
+        if (code.startsWith("OFF")) {
+          return {
+            now: "Excel作業を捨て、AIエージェント化できる定型業務を3つ抽出してください。",
+            threeMonths: "業務フローを再設計し、例外処理と顧客折衝を担当範囲へ移してください。",
+            sixMonths: "AI運用責任者として、部門横断で自動化KPIを設計してください。",
+          };
+        }
+        if (code.startsWith("IT")) {
+          return {
+            now: "実装量ではなく、AIへ設計指示を与える要件分解力を鍛えてください。",
+            threeMonths: "開発フローへAIレビューと自動テストを統合し、品質責任を可視化してください。",
+            sixMonths: "システム設計責任と事業KPIを接続し、上流工程の意思決定へ移行してください。",
+          };
+        }
+        if (code.startsWith("SAL")) {
+          return {
+            now: "AI顧客分析を使って、心理的交渉が必要な商談へ時間配分を寄せてください。",
+            threeMonths: "高単価提案の勝ちパターンをテンプレート化し、チームへ展開してください。",
+            sixMonths: "顧客戦略の設計者として、売上責任とデータ活用責任を統合してください。",
+          };
+        }
+        if (code.startsWith("MED")) {
+          return {
+            now: "ケア記録や事務作業をAIで短縮し、対人支援に再配分してください。",
+            threeMonths: "多職種連携のハブとして、情報共有の標準フローを構築してください。",
+            sixMonths: "現場改善を主導し、患者体験と業務効率の両立を成果として示してください。",
+          };
+        }
+        return {
+          now: "自動化される工程と人間が担う工程を切り分け、担当領域を再定義してください。",
+          threeMonths: "現場でしか得られない判断価値を業務設計に組み込んでください。",
+          sixMonths: "AI活用と現場責任を両立するポジションへ移行してください。",
+        };
+      }
+
+      function animateNumber(element, target, duration, digits) {
+        const start = performance.now();
+        const from = 0;
+
+        function tick(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 4);
+          const current = from + (target - from) * eased;
+          element.textContent = Number(current).toFixed(digits);
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          }
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      function updateThreatBackground(replacementRate) {
+        let start = "#071d27";
+        let end = "#101318";
+        if (replacementRate >= 75) {
+          start = "#2a0d0d";
+          end = "#14090a";
+        } else if (replacementRate >= 45) {
+          start = "#2a230d";
+          end = "#13110d";
+        }
+        document.documentElement.style.setProperty("--threat-start", start);
+        document.documentElement.style.setProperty("--threat-end", end);
+      }
+
+      async function captureResult() {
+        if (els.resultSection.classList.contains("hidden")) {
+          return;
+        }
+
+        try {
+          const canvas = await html2canvas(els.shareCaptureArea, {
+            backgroundColor: "#0d1015",
+            scale: 2,
+            useCORS: true,
+          });
+          const link = document.createElement("a");
+          link.href = canvas.toDataURL("image/png");
+          link.download = `ai-kiki-result-${Date.now()}.png`;
+          link.click();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function shareToX() {
+        if (els.resultSection.classList.contains("hidden")) {
+          return;
+        }
+
+        const rate = els.replacementRateValue.textContent;
+        const years = els.yearsLeftValue.textContent;
+        const job = els.matchedJobTitle.textContent;
+        const text = `${job} を診断した結果、AI代替率 ${rate}% / 職種余命 ${years}年。未来は固定されていないので、今のうちに動く。`;
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      function startToastLoop() {
+        if (state.toastTimer) {
+          clearInterval(state.toastTimer);
+        }
+        pushToast();
+        state.toastTimer = window.setInterval(pushToast, 6800);
+      }
+
+      function pushToast() {
+        if (!els.toastHost) {
+          return;
+        }
+
+        const existingToasts = els.toastHost.children.length;
+        if (existingToasts >= 3) {
+          els.toastHost.firstElementChild?.remove();
+        }
+
+        const message = buildActivityMessage();
+        const toast = document.createElement("div");
+        toast.className = "mb-3 rounded-2xl border border-white/10 bg-[#11151b]/90 px-4 py-4 text-sm text-white/75 shadow-threat backdrop-blur animate-toastIn";
+        toast.innerHTML = `
+          <p class="font-mono text-[10px] uppercase tracking-[0.28em] text-white/35">Activity Feed</p>
+          <p class="mt-2 leading-6">${escapeHtml(message)}</p>
+        `;
+        els.toastHost.appendChild(toast);
+        window.setTimeout(() => toast.remove(), 5600);
+      }
+
+      function buildActivityMessage() {
+        const age = randomInt(20, 65);
+        const template = ACTIVITY_TEMPLATES[Math.floor(Math.random() * ACTIVITY_TEMPLATES.length)];
+
+        let jobTitle = FALLBACK_JOBS[Math.floor(Math.random() * FALLBACK_JOBS.length)];
+        if (Array.isArray(state.jobs) && state.jobs.length > 0) {
+          const randomJob = state.jobs[Math.floor(Math.random() * state.jobs.length)];
+          const title = String(randomJob.job_title || randomJob.jobTitle || "").trim();
+          if (title) {
+            jobTitle = title;
+          }
+        }
+
+        return template
+          .replace("{age}", String(age))
+          .replace("{job}", jobTitle);
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function normalizeInput(input) {
+        if (typeof input === "number") {
+          if (input >= 1 && input <= 5) return clamp(input / 5, 0.2, 1);
+          if (input > 0 && input <= 1) return clamp(input, 0.2, 1);
+          if (input > 1 && input <= 100) return clamp(input / 100, 0.2, 1);
+        }
+
+        if (typeof input === "string") {
+          const normalized = input.trim().toLowerCase();
+          const map = { none: 0.2, basic: 0.4, intermediate: 0.7, advanced: 1 };
+          if (map[normalized]) return map[normalized];
+        }
+
+        return 0.2;
+      }
+
+      function getMarketVolatility(label) {
+        const target = String(label || "").trim();
+        const found = MARKET_VOLATILITY.find((entry) => entry.keywords.some((keyword) => target.includes(keyword)));
+        return found ? found.factor : 1;
+      }
+
+      function getCategoryShield(category) {
+        if (category.includes("医療") || category.includes("介護") || category.includes("保育")) return 0.82;
+        if (category.includes("現場")) return 0.66;
+        if (category.includes("専門職")) return 0.58;
+        if (category.includes("販売")) return 0.36;
+        if (category.includes("IT")) return 0.28;
+        return 0.16;
+      }
+
+      function generateScaryCopy(risk, yearsLeft) {
+        if (risk >= 0.85) {
+          return {
+            warningLabel: "即時避難",
+            scaryCopy: `その仕事は安全地帯ではありません。AI導入が本格化した瞬間、今の担当範囲はまとめて圧縮される可能性があります。推定余命は${yearsLeft.toFixed(1)}年です。`,
+          };
+        }
+        if (risk >= 0.7) {
+          return {
+            warningLabel: "レッドゾーン",
+            scaryCopy: "市場は待ってくれません。社歴や慣れでは守れず、業務そのものが薄くなれば席も縮みます。先送りコストのほうが高い状態です。",
+          };
+        }
+        if (risk >= 0.5) {
+          return {
+            warningLabel: "要警戒",
+            scaryCopy: "すぐ消える仕事ではなくても、今の延長線だけでは防御力が足りません。作業量ではなく、AIを使って何を増幅できるかが評価軸になります。",
+          };
+        }
+        return {
+          warningLabel: "監視継続",
+          scaryCopy: "今は防御要素があります。ただし安全ではありません。置換されにくい責任領域へ寄せ続ける前提で見てください。",
+        };
+      }
+
+      function buildSummary(job, risk, yearsLeft) {
+        const title = job.job_title || job.jobTitle || "この職種";
+        if (risk >= 0.8) {
+          return `${title} は、AIの補助対象ではなく削減対象に回る危険が高い職種です。今の担当業務を温存したまま生き残るのは難しく、余命はおよそ ${yearsLeft.toFixed(1)} 年です。`;
+        }
+        if (risk >= 0.6) {
+          return `${title} は、今後数年で評価軸が変わる圧力が強い職種です。作業者のままでは厳しく、AIを管理する側に寄れなければ収入維持は不安定になります。`;
+        }
+        return `${title} にはまだ防御余地があります。ただし低リスクでも安心ではありません。AIに置き換わりにくい責任領域へ寄せ続けることが前提です。`;
+      }
+
+      function suggestPath(job, risk) {
+        const category = job.category || job.industry_name || job.industryName || "その他";
+        const suggested = dedupe([
+          ...((job.suggested_skills || job.suggestedSkills || []).slice(0, 3)),
+          ...((CATEGORY_SKILLS[category] || ["顧客理解", "問題設定", "AI活用設計"]).slice(0, 3)),
+        ]).slice(0, 4);
+
+        return suggested.map((item, index) => {
+          if (risk >= 0.75 && index < 2) return `${item} を90日以内の主計画にする`;
+          return `${item} を業務へ接続して再現性を作る`;
+        });
+      }
+
+      function buildRiskFactors(job, routineRatio, marketVolatility) {
+        const factors = [];
+        const title = job.job_title || job.jobTitle || "";
+        if (routineRatio >= 60) factors.push("定型業務の比率が高く、最初に圧縮対象へ入りやすい");
+        if (marketVolatility >= 1.3) factors.push("業界全体のAI導入速度が速く、猶予が短い");
+        if ((Number(job.base_replacement_rate || job.baseReplacementRate || 0) || 0) >= 0.8) factors.push("職種そのものの基礎代替率が高い");
+        if (/事務|入力|受付|コール|翻訳|ライター|デザイナー/.test(title)) factors.push("反復可能な成果物が多く、AIに学習されやすい");
+        return factors.length ? factors : ["今のところ急激な置換圧力は限定的"];
+      }
+
+      function buildDefenseFactors(job, aiSkillScore, categoryShield) {
+        const factors = [];
+        const category = job.category || job.industry_name || job.industryName || "";
+        if (categoryShield >= 0.75) factors.push("対人支援や現場判断の比率が高く、完全自動化しにくい");
+        if (categoryShield >= 0.55 && categoryShield < 0.75) factors.push("責任判断や例外処理が必要で、汎用AIだけでは代替しづらい");
+        if (aiSkillScore >= 0.7) factors.push("AI活用度が高く、置換される側ではなく使いこなす側へ寄せやすい");
+        factors.push("専門性を成果責任へ結び直せれば防御力が上がる");
+        return dedupe(factors).slice(0, 4);
+      }
+
+      function dedupe(items) {
+        return [...new Set(items.filter(Boolean).map((item) => String(item).trim()))];
+      }
+
+      function formatYen(value) {
+        return new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 }).format(value);
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function clamp01(value) {
+        return clamp(value, 0, 1);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    </script>
+  </body>
+</html>

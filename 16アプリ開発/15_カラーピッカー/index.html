@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>カラーピッカー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell color-shell">
+      <header class="app-bar color-bar">
+        <h1 class="ba-title color-title">カラーピッカー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="カメラ抽出">
+          <video id="cameraView" class="camera-view" playsinline muted></video>
+          <canvas id="captureCanvas" class="hidden-canvas" width="640" height="480"></canvas>
+          <p id="statusMessage" class="muted" aria-live="polite">カメラ開始後、映像をタップして色を取得してください</p>
+          <div class="action-row">
+            <button id="startCameraBtn" class="ba-button" type="button">カメラ開始</button>
+            <button id="pickColorBtn" class="btn-secondary" type="button">中央色を取得</button>
+            <button id="stopCameraBtn" class="btn-secondary" type="button">停止</button>
+          </div>
+        </section>
+
+        <section class="ba-card" aria-label="抽出結果">
+          <div id="colorPreview" class="color-preview"></div>
+          <p class="result-line">HEX: <strong id="hexLabel">#000000</strong></p>
+          <p class="result-line">RGB: <strong id="rgbLabel">rgb(0, 0, 0)</strong></p>
+          <button id="copyBtn" class="text-link" type="button">HEXをコピー</button>
+        </section>
+
+        <section class="ba-card" aria-label="最近の色">
+          <div class="list-header">
+            <h2 class="section-title">最近の色</h2>
+            <button id="clearRecentBtn" class="btn-secondary" type="button">クリア</button>
+          </div>
+          <div id="recentList" class="recent-list"></div>
+          <p id="emptyState" class="muted">まだ取得した色はありません</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

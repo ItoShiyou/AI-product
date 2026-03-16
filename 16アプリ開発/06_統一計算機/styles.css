@@ -1,0 +1,103 @@
+:root {
+  --app-main-color: #cfd8dc;
+  --app-main-color-strong: #b0bec5;
+  --focus: var(--app-main-color-strong);
+  --footer-height: 64px;
+  --bg-color: #cfd8dc;
+  --surface-color: #edf2f4;
+  --surface-muted: #dde6ea;
+}
+
+:root[data-theme="dark"] {
+  --app-main-color: #37474f;
+  --app-main-color-strong: #546e7a;
+  --focus: var(--app-main-color-strong);
+  --bg-color: #37474f;
+  --surface-color: #445a64;
+  --surface-muted: #2d3a41;
+}
+
+.calc-shell {
+  padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px) + calc(var(--spacing-unit) * 2));
+}
+
+.calc-title {
+  margin: 0;
+  text-align: left;
+  font-size: 1.3rem;
+}
+
+.compact {
+  min-height: 40px;
+  padding: 0 calc(var(--spacing-unit) * 1.5);
+}
+
+.expression-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--font-sub);
+  min-height: 24px;
+  text-align: right;
+}
+
+.result-label {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.muted {
+  margin: calc(var(--spacing-unit) * 1) 0 0;
+  color: var(--font-sub);
+  font-size: 0.86rem;
+  text-align: right;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.key {
+  min-height: 52px;
+  border-radius: 16px;
+  border: none;
+  background: var(--surface-muted);
+  color: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.key-func {
+  background: color-mix(in srgb, var(--surface-muted) 70%, var(--warning) 30%);
+}
+
+.key-op {
+  background: color-mix(in srgb, var(--surface-muted) 65%, var(--app-main-color) 35%);
+}
+
+.key-eq {
+  background: var(--app-main-color);
+  color: #2c2c2c;
+  grid-column: span 2;
+}
+
+.app-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: var(--footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom, 0px));
+  color: var(--font-sub);
+  font-size: 0.78rem;
+  background: var(--bg-color);
+  border-top: 1px solid var(--surface-border);
+  z-index: 201;
+}

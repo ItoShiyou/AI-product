@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>割り勘計算機</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell split-shell">
+      <header class="app-bar split-bar">
+        <h1 class="ba-title split-title">割り勘計算機</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="入力">
+          <div class="form-field">
+            <label class="field-label" for="totalInput">総額 (円)</label>
+            <input id="totalInput" class="form-control" type="number" min="1" step="1" inputmode="numeric" placeholder="5000" />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="peopleInput">人数</label>
+            <input id="peopleInput" class="form-control" type="number" min="1" max="100" step="1" inputmode="numeric" placeholder="4" />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="roundingSelect">端数丸め</label>
+            <select id="roundingSelect" class="form-control">
+              <option value="none">丸めなし</option>
+              <option value="nearest-1">1円単位（四捨五入）</option>
+              <option value="up-10">10円単位（切り上げ）</option>
+              <option value="down-10">10円単位（切り捨て）</option>
+              <option value="nearest-10">10円単位（四捨五入）</option>
+              <option value="up-100">100円単位（切り上げ）</option>
+              <option value="down-100">100円単位（切り捨て）</option>
+            </select>
+          </div>
+
+          <button id="calculateBtn" class="ba-button" type="button">計算する</button>
+          <p id="statusMessage" class="muted" aria-live="polite">総額と人数を入力してください</p>
+        </section>
+
+        <section class="ba-card" aria-label="結果">
+          <h2 class="section-title">計算結果</h2>
+          <p class="result-line">1人あたり: <strong id="perPersonLabel">¥0</strong></p>
+          <p class="result-line">合計徴収額: <strong id="collectedLabel">¥0</strong></p>
+          <p class="result-line">差額: <strong id="differenceLabel">¥0</strong></p>
+          <p id="detailLabel" class="muted">内訳: -</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

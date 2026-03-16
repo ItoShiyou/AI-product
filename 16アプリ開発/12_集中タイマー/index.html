@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>集中タイマー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell focus-shell">
+      <header class="app-bar focus-bar">
+        <h1 class="ba-title focus-title">集中タイマー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="モード設定">
+          <div class="mode-row">
+            <button id="focusModeBtn" class="btn-secondary" type="button">集中 25分</button>
+            <button id="breakModeBtn" class="btn-secondary" type="button">休憩 5分</button>
+          </div>
+          <p id="phaseLabel" class="phase-label">現在: 集中</p>
+          <p id="timeLabel" class="time-label">25:00</p>
+          <p id="statusMessage" class="muted" aria-live="polite">開始ボタンでスタート</p>
+          <div class="action-row">
+            <button id="startPauseBtn" class="ba-button" type="button">開始</button>
+            <button id="skipBtn" class="btn-secondary" type="button">次へ</button>
+            <button id="resetBtn" class="btn-secondary" type="button">リセット</button>
+          </div>
+          <button id="notificationBtn" class="text-link" type="button">通知を許可する</button>
+        </section>
+
+        <section class="ba-card" aria-label="統計">
+          <h2 class="section-title">本日の記録</h2>
+          <p class="result-line">完了サイクル: <strong id="cycleCountLabel">0</strong></p>
+          <p class="result-line">完了した集中時間: <strong id="focusMinutesLabel">0分</strong></p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

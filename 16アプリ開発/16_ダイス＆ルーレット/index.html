@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>サイコロ＆ルーレット</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell game-shell">
+      <header class="app-bar game-bar">
+        <h1 class="ba-title game-title">サイコロ＆ルーレット</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="モード選択">
+          <div class="mode-row">
+            <button id="diceModeBtn" class="btn-primary" type="button">サイコロ</button>
+            <button id="rouletteModeBtn" class="btn-secondary" type="button">ルーレット</button>
+          </div>
+
+          <div id="dicePanel" class="panel">
+            <label class="field-label" for="diceSidesInput">面数</label>
+            <input id="diceSidesInput" class="form-control" type="number" min="2" max="100" value="6" inputmode="numeric" />
+          </div>
+
+          <div id="roulettePanel" class="panel hidden">
+            <label class="field-label" for="itemsInput">項目（改行区切り）</label>
+            <textarea id="itemsInput" class="form-control" rows="5" placeholder="コーヒー&#10;紅茶&#10;水"></textarea>
+          </div>
+
+          <button id="rollBtn" class="ba-button" type="button">抽選する</button>
+          <p id="statusMessage" class="muted" aria-live="polite">モードを選んで抽選してください</p>
+        </section>
+
+        <section class="ba-card" aria-label="結果表示">
+          <p id="resultLabel" class="result-label">-</p>
+          <p id="subLabel" class="muted">直近結果: なし</p>
+        </section>
+
+        <section class="ba-card" aria-label="履歴">
+          <div class="list-header">
+            <h2 class="section-title">履歴</h2>
+            <button id="clearHistoryBtn" class="btn-secondary" type="button">クリア</button>
+          </div>
+          <ul id="historyList" class="history-list"></ul>
+          <p id="emptyState" class="muted">履歴はありません</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>消費税・割引計算</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell tax-shell">
+      <header class="app-bar tax-bar">
+        <h1 class="ba-title tax-title">消費税・割引計算</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="入力">
+          <div class="form-field">
+            <label class="field-label" for="basePriceInput">定価 (円)</label>
+            <input id="basePriceInput" class="form-control" type="number" min="0" step="1" inputmode="numeric" placeholder="3980" />
+          </div>
+
+          <fieldset class="tax-rate-group">
+            <legend class="field-label">税率</legend>
+            <label><input type="radio" name="taxRate" value="8" /> 8%</label>
+            <label><input type="radio" name="taxRate" value="10" checked /> 10%</label>
+          </fieldset>
+
+          <div class="form-field">
+            <label class="field-label" for="discountRange">割引率 <strong id="discountLabel">0%</strong></label>
+            <input id="discountRange" type="range" min="0" max="90" step="1" value="0" />
+          </div>
+
+          <button id="calculateBtn" class="ba-button" type="button">計算する</button>
+          <p id="statusMessage" class="muted" aria-live="polite">定価を入力して計算してください</p>
+        </section>
+
+        <section class="ba-card" aria-label="結果">
+          <h2 class="section-title">計算結果</h2>
+          <p class="result-line">定価: <strong id="basePriceLabel">¥0</strong></p>
+          <p class="result-line">割引後: <strong id="discountedLabel">¥0</strong></p>
+          <p class="result-line">消費税: <strong id="taxLabel">¥0</strong></p>
+          <p class="result-line">支払総額: <strong id="totalLabel">¥0</strong></p>
+          <p id="savedLabel" class="muted">値引き額: ¥0</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

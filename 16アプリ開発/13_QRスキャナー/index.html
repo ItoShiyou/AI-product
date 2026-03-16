@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QRスキャナー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell qr-shell">
+      <header class="app-bar qr-bar">
+        <h1 class="ba-title qr-title">QRスキャナー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">Dark</button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="読み取り">
+          <video id="cameraView" class="camera-view" playsinline muted></video>
+          <canvas id="captureCanvas" class="hidden-canvas" width="640" height="480"></canvas>
+          <p id="statusMessage" class="muted" aria-live="polite">カメラを開始してください</p>
+          <div class="action-row">
+            <button id="startScanBtn" class="ba-button" type="button">スキャン開始</button>
+            <button id="stopScanBtn" class="btn-secondary" type="button">停止</button>
+          </div>
+          <p id="resultLabel" class="result-label">結果: 未検出</p>
+          <a id="openLink" class="text-link" href="#" target="_blank" rel="noopener noreferrer" hidden>URLを開く</a>
+        </section>
+
+        <section class="ba-card" aria-label="履歴">
+          <div class="list-header">
+            <h2 class="section-title">履歴</h2>
+            <button id="clearHistoryBtn" class="btn-secondary" type="button">履歴を消去</button>
+          </div>
+          <ul id="historyList" class="history-list"></ul>
+          <p id="emptyState" class="muted">履歴はまだありません</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

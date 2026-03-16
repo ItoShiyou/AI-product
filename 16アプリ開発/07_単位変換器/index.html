@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>単位変換器</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell converter-shell">
+      <header class="app-bar converter-bar">
+        <h1 class="ba-title converter-title">単位変換器</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="変換設定">
+          <div class="form-field">
+            <label class="field-label" for="categorySelect">カテゴリ</label>
+            <select id="categorySelect" class="form-control">
+              <option value="length">長さ</option>
+              <option value="weight">重さ</option>
+              <option value="area">面積</option>
+            </select>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="field-label" for="fromUnitSelect">変換元単位</label>
+              <select id="fromUnitSelect" class="form-control"></select>
+            </div>
+            <div class="form-field">
+              <label class="field-label" for="toUnitSelect">変換先単位</label>
+              <select id="toUnitSelect" class="form-control"></select>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="fromValueInput">変換元の値</label>
+            <input
+              id="fromValueInput"
+              class="form-control"
+              type="number"
+              step="any"
+              inputmode="decimal"
+              placeholder="数値を入力"
+            />
+          </div>
+
+          <button id="swapBtn" class="btn-secondary" type="button">単位を入れ替える</button>
+        </section>
+
+        <section class="ba-card" aria-label="変換結果">
+          <h2 class="section-title">結果</h2>
+          <p id="resultValue" class="result-value">0</p>
+          <p id="resultFormula" class="muted">変換式: -</p>
+          <p id="statusMessage" class="muted" aria-live="polite">カテゴリと単位を選択してください</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

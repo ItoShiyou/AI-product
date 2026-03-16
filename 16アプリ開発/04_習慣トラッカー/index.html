@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>習慣トラッカー</title>
+    <link rel="stylesheet" href="../core.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell habit-shell">
+      <header class="app-bar habit-bar">
+        <h1 class="ba-title habit-title">習慣トラッカー</h1>
+        <button id="themeToggle" class="btn-secondary compact" type="button" aria-label="テーマ切り替え">
+          Dark
+        </button>
+      </header>
+
+      <main class="app-main">
+        <section class="ba-card" aria-label="習慣を追加">
+          <label class="field-label" for="habitInput">習慣を登録</label>
+          <div class="compose-row">
+            <input
+              id="habitInput"
+              class="form-control"
+              type="text"
+              maxlength="40"
+              placeholder="例: 朝10分読書"
+            />
+            <button id="addHabitBtn" class="ba-button" type="button">追加</button>
+          </div>
+          <p id="statusMessage" class="muted" aria-live="polite">習慣はローカルに自動保存されます</p>
+        </section>
+
+        <section class="ba-card" aria-label="月間ログ">
+          <div class="month-nav">
+            <button id="prevMonthBtn" class="month-nav-btn" type="button" aria-label="前の月">‹</button>
+            <h2 id="monthLabel" class="month-label">----年--月</h2>
+            <button id="nextMonthBtn" class="month-nav-btn" type="button" aria-label="次の月">›</button>
+          </div>
+
+          <div class="list-header">
+            <h2 class="section-title">習慣一覧</h2>
+            <span id="summaryLabel" class="muted">0習慣</span>
+          </div>
+
+          <ul id="habitList" class="habit-list" aria-live="polite"></ul>
+          <p id="emptyState" class="empty-state">習慣はまだありません。</p>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <small>&copy; THE Bonjin 2019&ndash;2026</small>
+      </footer>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

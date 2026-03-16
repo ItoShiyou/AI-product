@@ -1,0 +1,81 @@
+:root {
+  --app-main-color: #ff9aa2;
+  --app-main-color-strong: #e47d87;
+  --bg-color: #ff9aa2;
+  --surface-color: #ffd0d4;
+  --surface-muted: #ffc1c7;
+}
+
+:root[data-theme="dark"] {
+  --app-main-color: #63393c;
+  --app-main-color-strong: #835155;
+  --bg-color: #63393c;
+  --surface-color: #7a4a4f;
+  --surface-muted: #553034;
+}
+
+.timer-title {
+  margin: 0;
+  font-size: 1.25rem;
+  text-align: left;
+}
+
+.compact {
+  min-height: 40px;
+  padding: 0 calc(var(--spacing-unit) * 1.5);
+}
+
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--spacing-unit) * 1.5);
+}
+
+.time-inputs label {
+  font-size: 0.88rem;
+  color: var(--font-sub);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-row {
+  margin-top: calc(var(--spacing-unit) * 1.5);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: calc(var(--spacing-unit) * 1);
+}
+
+.preset-btn {
+  min-height: 42px;
+  font-size: 0.82rem;
+}
+
+.time-label {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(2.2rem, 9vw, 3.6rem);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.action-row {
+  margin-top: calc(var(--spacing-unit) * 1.5);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: calc(var(--spacing-unit) * 1);
+}
+
+.muted {
+  margin: calc(var(--spacing-unit) * 1) 0 0;
+  color: var(--font-sub);
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--font-sub);
+  font-size: 0.78rem;
+  padding-bottom: 8px;
+}
