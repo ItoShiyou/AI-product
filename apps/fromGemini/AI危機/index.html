@@ -6,7 +6,7 @@
     <title>AI危機 | 市場価値の賞味期限を算出する</title>
     <meta
       name="description"
-      content="100業種データと業務比率から、AI代替率と職種余命を可視化する診断ページ。"
+      content="100業種データと業務比率から、AI代替率と生存戦略を可視化する診断ページ。"
     />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -153,6 +153,21 @@
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
           linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 75, 75, 0.1));
+        width: 100%;
+        max-width: 100%;
+        margin-inline: auto;
+      }
+
+      .result-backdrop * {
+        min-width: 0;
+      }
+
+      .result-backdrop p,
+      .result-backdrop h4,
+      .result-backdrop li,
+      .result-backdrop span {
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .meter-track {
@@ -203,6 +218,50 @@
         height: 100% !important;
       }
 
+      .info-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.72);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+      }
+
+      .info-trigger:hover {
+        border-color: rgba(16, 185, 129, 0.8);
+        color: rgba(16, 185, 129, 0.95);
+        background: rgba(16, 185, 129, 0.1);
+      }
+
+      .info-popover {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        z-index: 30;
+        width: min(18rem, calc(100vw - 2rem));
+        max-width: calc(100vw - 2rem);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        border-radius: 0.9rem;
+        background: rgba(15, 21, 26, 0.96);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+        padding: 0.8rem 0.9rem;
+      }
+
+      .info-popover p {
+        margin: 0;
+        color: rgba(220, 252, 231, 0.92);
+        font-size: 0.76rem;
+        line-height: 1.6;
+      }
+
       @media (max-width: 640px) {
         .chart-shell--income {
           aspect-ratio: 4 / 3;
@@ -212,6 +271,13 @@
         .chart-shell--radar {
           min-height: 14rem;
         }
+
+        .info-popover {
+          left: 50%;
+          transform: translateX(-50%);
+          width: min(20rem, calc(100vw - 1.5rem));
+          max-width: calc(100vw - 1.5rem);
+        }
       }
     </style>
   </head>
@@ -219,7 +285,7 @@
     <div class="pointer-events-none fixed inset-0 grid-bg"></div>
 
     <div class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <header class="flex items-center justify-between border-b border-white/10 pb-5">
+      <header class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
         <div>
           <p class="font-mono text-xs uppercase tracking-[0.42em] text-threat-blue/80">AI危機診断</p>
           <h1 class="mt-2 text-lg font-bold tracking-[0.18em] text-white/90">AI Survival Diagnostic</h1>
@@ -252,8 +318,8 @@
               </div>
               <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
                 <p class="font-mono text-xs uppercase tracking-[0.28em] text-white/45">Metric 02</p>
-                <p class="mt-3 text-3xl font-extrabold text-threat-amber">職種余命</p>
-                <p class="mt-2 text-sm text-white/60">今の年収を維持できる推定年数</p>
+                <p class="mt-3 text-3xl font-extrabold text-threat-amber">維持確率</p>
+                <p class="mt-2 text-sm text-white/60">現収入を維持できる見込みを可視化</p>
               </div>
               <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
                 <p class="font-mono text-xs uppercase tracking-[0.28em] text-white/45">Metric 03</p>
@@ -434,7 +500,7 @@
               <p class="font-mono text-xs uppercase tracking-[0.34em] text-white/45">Result Area</p>
               <h3 class="mt-2 text-3xl font-black tracking-[-0.03em] sm:text-4xl">診断結果</h3>
             </div>
-            <div class="flex gap-3">
+            <div class="flex flex-wrap gap-3">
               <button id="captureBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
                 画像として保存
               </button>
@@ -445,7 +511,7 @@
           </div>
 
           <div id="shareCaptureArea" class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div class="result-backdrop cyber-border relative overflow-hidden rounded-[36px] p-6 shadow-threat sm:p-8">
+            <div class="result-backdrop cyber-border relative mx-auto w-full max-w-full overflow-hidden rounded-[36px] p-6 shadow-threat sm:p-8">
               <div class="absolute right-0 top-0 h-36 w-36 rounded-full bg-threat-red/12 blur-3xl"></div>
               <div class="absolute bottom-0 left-0 h-36 w-36 rounded-full bg-threat-blue/12 blur-3xl"></div>
 
@@ -480,20 +546,43 @@
                   </div>
 
                   <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
-                    <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Career Lifespan</p>
-                    <div class="mt-4 flex items-end gap-3">
-                      <span id="yearsLeftValue" class="font-mono text-5xl font-black leading-none text-threat-amber sm:text-7xl">0.0</span>
-                      <span class="mb-2 font-mono text-xl font-bold text-white/70">年</span>
-                    </div>
-                    <p id="daysLeftValue" class="mt-3 font-mono text-sm text-white/55">0日</p>
-                    <div class="mt-5 grid grid-cols-2 gap-3">
-                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45">維持確率</p>
+                    <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">Readiness & Stability</p>
+                    <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div class="relative rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-white/45">
+                          <span>維持確率</span>
+                          <button
+                            type="button"
+                            class="info-trigger"
+                            data-info-trigger
+                            data-info-target="incomeProbabilityInfo"
+                            aria-label="維持確率の補足を表示"
+                            aria-expanded="false"
+                            aria-controls="incomeProbabilityInfo"
+                          >i</button>
+                        </p>
                         <p id="incomeProbabilityValue" class="mt-2 font-mono text-2xl font-bold text-white">0%</p>
+                        <div id="incomeProbabilityInfo" data-info-popover class="info-popover hidden" role="dialog" aria-label="維持確率の補足">
+                          <p>維持確率は、5年後に現在の年収水準を維持できる見込みです。AI代替率、AI活用度、業務の防御要素を組み合わせて算出しています。</p>
+                        </div>
                       </div>
-                      <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45">AI準備度</p>
+                      <div class="relative rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-white/45">
+                          <span>AI準備度</span>
+                          <button
+                            type="button"
+                            class="info-trigger"
+                            data-info-trigger
+                            data-info-target="aiReadinessInfo"
+                            aria-label="AI準備度の補足を表示"
+                            aria-expanded="false"
+                            aria-controls="aiReadinessInfo"
+                          >i</button>
+                        </p>
                         <p id="aiReadinessValue" class="mt-2 font-mono text-2xl font-bold text-white">0</p>
+                        <div id="aiReadinessInfo" data-info-popover class="info-popover hidden" role="dialog" aria-label="AI準備度の補足">
+                          <p>AI準備度は、現時点のAI活用スキルを0-100で示した指標です。ツール利用レベルや運用経験に応じて、業務再設計への移行余力を可視化します。</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -611,7 +700,7 @@
         <p class="font-mono text-xs uppercase tracking-[0.34em] text-threat-red">Sensitive Result</p>
         <h3 class="mt-4 text-3xl font-black leading-tight">診断結果は厳しい見立てを含みます。閲覧しますか？</h3>
         <p class="mt-4 text-sm leading-7 text-white/65">
-          代替率と職種余命は、統計モデルに基づく警戒値として表示されます。数値は恐怖を煽るためではなく、今すぐ動く根拠を可視化するためのものです。
+          代替率などの指標は、統計モデルに基づく警戒値として表示されます。数値は恐怖を煽るためではなく、今すぐ動く根拠を可視化するためのものです。
         </p>
         <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button id="cancelSeverityBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10">
@@ -654,7 +743,7 @@
         "{age}歳 {job}の診断が実行されました",
         "{age}歳 {job}の結果が更新されました",
         "{age}歳 {job}の診断が実行されました",
-        "{age}歳 {job}の職種余命を算出しました",
+        "{age}歳 {job}の生存戦略を更新しました",
       ];
       const FALLBACK_JOBS = ["一般事務", "営業職", "看護師", "施工管理", "Webデザイナー"];
       const LOADING_STEPS = [
@@ -662,7 +751,7 @@
         "2030年の労働市場をシミュレート中...",
         "業界ごとのAI導入速度を再計算中...",
         "代替されやすい担当業務を抽出中...",
-        "余命曲線を算出中...",
+        "リスク曲線を算出中...",
       ];
 
       const state = {
@@ -708,8 +797,6 @@
         escapeIndexValue: document.getElementById("escapeIndexValue"),
         replacementRateValue: document.getElementById("replacementRateValue"),
         riskMeterFill: document.getElementById("riskMeterFill"),
-        yearsLeftValue: document.getElementById("yearsLeftValue"),
-        daysLeftValue: document.getElementById("daysLeftValue"),
         incomeProbabilityValue: document.getElementById("incomeProbabilityValue"),
         aiReadinessValue: document.getElementById("aiReadinessValue"),
         scaryCopy: document.getElementById("scaryCopy"),
@@ -728,6 +815,8 @@
         step3Months: document.getElementById("step3Months"),
         step6Months: document.getElementById("step6Months"),
         roiText: document.getElementById("roiText"),
+        infoTriggers: Array.from(document.querySelectorAll("[data-info-trigger]")),
+        infoPopovers: Array.from(document.querySelectorAll("[data-info-popover]")),
       };
 
       init();
@@ -756,6 +845,10 @@
         els.cancelSeverityBtn.addEventListener("click", cancelSeverity);
         els.captureBtn.addEventListener("click", captureResult);
         els.shareXBtn.addEventListener("click", shareToX);
+        els.infoTriggers.forEach((button) => {
+          button.addEventListener("click", handleInfoTrigger);
+        });
+        document.addEventListener("keydown", handleGlobalKeydown);
       }
 
       async function loadJobs() {
@@ -878,10 +971,49 @@
       }
 
       function handleOutsideSuggestionClick(event) {
+        const infoTrigger = event.target.closest("[data-info-trigger]");
+        const infoPopover = event.target.closest("[data-info-popover]");
+        if (!infoTrigger && !infoPopover) {
+          closeInfoPopovers();
+        }
+
         if (els.jobSuggestionBox.contains(event.target) || els.jobSearch.contains(event.target)) {
           return;
         }
         els.jobSuggestionBox.classList.add("hidden");
+      }
+
+      function handleInfoTrigger(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const trigger = event.currentTarget;
+        const targetId = trigger.getAttribute("data-info-target");
+        if (!targetId) {
+          return;
+        }
+
+        const targetPopover = document.getElementById(targetId);
+        if (!targetPopover) {
+          return;
+        }
+
+        const willOpen = targetPopover.classList.contains("hidden");
+        closeInfoPopovers();
+        if (willOpen) {
+          targetPopover.classList.remove("hidden");
+          trigger.setAttribute("aria-expanded", "true");
+        }
+      }
+
+      function closeInfoPopovers() {
+        els.infoPopovers.forEach((popover) => popover.classList.add("hidden"));
+        els.infoTriggers.forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+      }
+
+      function handleGlobalKeydown(event) {
+        if (event.key === "Escape") {
+          closeInfoPopovers();
+        }
       }
 
       function selectJob(job, closeBox) {
@@ -1083,12 +1215,7 @@
           0.99
         );
 
-        const baseLifespan = (10 / (Math.max(adjustedRisk, 0.03) * 1.5)) * (1 - age / 100);
         const escapeIndex = clamp((age - 45) / 20, 0, 1);
-        const deadlineYears = Math.max(0.5, DEADLINE_YEAR - CURRENT_YEAR);
-        const singularityCurve = deadlineYears * Math.exp(-5.2 * Math.max(0, adjustedRisk - 0.18));
-        const yearsLeft = clamp(baseLifespan * 0.16 + singularityCurve + escapeIndex * 0.9, 0.3, deadlineYears + 1.2);
-        const daysLeft = Math.max(1, Math.round(yearsLeft * 365));
 
         const replacementRate = Math.round(adjustedRisk * 10000) / 100;
         const aiReadinessScore = Math.round(aiSkillScore * 100);
@@ -1097,8 +1224,8 @@
         const medianIncome = CATEGORY_INCOME[category] || 5000000;
         const futureIncome = Math.round(currentIncome * (1 - adjustedRisk));
         const predictedIncome = Math.round(medianIncome * clamp(1 - adjustedRisk * 0.76 + aiSkillScore * 0.08, 0.2, 0.98));
-        const warning = generateScaryCopy(adjustedRisk, yearsLeft);
-        const summary = buildSummary(job, adjustedRisk, yearsLeft);
+        const warning = generateScaryCopy(adjustedRisk);
+        const summary = buildSummary(job, adjustedRisk);
         const recommendedActions = suggestPath(job, adjustedRisk);
         const riskFactors = buildRiskFactors(job, routineRatio, marketVolatility);
         const defenseFactors = buildDefenseFactors(job, aiSkillScore, categoryShield);
@@ -1111,8 +1238,6 @@
           matchedJobTitle: job.job_title || job.jobTitle || "不明",
           matchedIndustry: category,
           replacementRate,
-          yearsLeft,
-          daysLeft,
           incomeProbability,
           aiReadinessScore,
           escapeIndex: Math.round(escapeIndex * 100),
@@ -1143,7 +1268,6 @@
         els.medianIncomeLabel.textContent = formatYen(result.medianIncome);
         els.summaryText.textContent = result.summary;
         els.riskMeterFill.style.width = `${Math.min(result.replacementRate, 100)}%`;
-        els.daysLeftValue.textContent = `${result.daysLeft.toLocaleString("ja-JP")}日`;
 
         renderList(els.recommendedActions, result.recommendedActions);
         renderList(els.riskFactors, result.riskFactors);
@@ -1152,7 +1276,6 @@
         drawSkillRadarChart(result);
         renderRoadmap(result);
         animateNumber(els.replacementRateValue, result.replacementRate, 1200, 2);
-        animateNumber(els.yearsLeftValue, result.yearsLeft, 1200, 2);
         updateThreatBackground(result.replacementRate);
 
         window.setTimeout(() => {
@@ -1459,9 +1582,8 @@
         }
 
         const rate = els.replacementRateValue.textContent;
-        const years = els.yearsLeftValue.textContent;
         const job = els.matchedJobTitle.textContent;
-        const text = `${job} を診断した結果、AI代替率 ${rate}% / 職種余命 ${years}年。未来は固定されていないので、今のうちに動く。`;
+        const text = `${job} を診断した結果、AI代替率 ${rate}%。未来は固定されていないので、今のうちに動く。`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(url, "_blank", "noopener,noreferrer");
       }
@@ -1548,11 +1670,11 @@
         return 0.16;
       }
 
-      function generateScaryCopy(risk, yearsLeft) {
+      function generateScaryCopy(risk) {
         if (risk >= 0.85) {
           return {
             warningLabel: "即時避難",
-            scaryCopy: `その仕事は安全地帯ではありません。AI導入が本格化した瞬間、今の担当範囲はまとめて圧縮される可能性があります。推定余命は${yearsLeft.toFixed(1)}年です。`,
+            scaryCopy: "その仕事は安全地帯ではありません。AI導入が本格化した瞬間、今の担当範囲はまとめて圧縮される可能性があります。先送り余地はほぼありません。",
           };
         }
         if (risk >= 0.7) {
@@ -1573,10 +1695,10 @@
         };
       }
 
-      function buildSummary(job, risk, yearsLeft) {
+      function buildSummary(job, risk) {
         const title = job.job_title || job.jobTitle || "この職種";
         if (risk >= 0.8) {
-          return `${title} は、AIの補助対象ではなく削減対象に回る危険が高い職種です。今の担当業務を温存したまま生き残るのは難しく、余命はおよそ ${yearsLeft.toFixed(1)} 年です。`;
+          return `${title} は、AIの補助対象ではなく削減対象に回る危険が高い職種です。今の担当業務を温存したまま生き残るのは難しく、役割の再設計が必要です。`;
         }
         if (risk >= 0.6) {
           return `${title} は、今後数年で評価軸が変わる圧力が強い職種です。作業者のままでは厳しく、AIを管理する側に寄れなければ収入維持は不安定になります。`;

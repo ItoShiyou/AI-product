@@ -207,14 +207,9 @@ export function calculateSurvivalScore(userSurvey: UserSurvey, jobMaster: JobMas
 
   const age = userSurvey.profile.age ?? 35;
   const escapeIndex = clamp((age - 45) / 20, 0, 1);
+  const lifespanByFormula = (10 / (Math.max(adjustedRisk, 0.03) * 1.5)) * (1 - age / 100);
+  const careerLifespanYears = Math.max(0.3, lifespanByFormula);
   const deadlineYears = Math.max(0.5, DEADLINE_YEAR - CURRENT_YEAR);
-  const baseLifespan = (10 / (Math.max(adjustedRisk, 0.03) * 1.5)) * (1 - age / 100);
-  const singularityCurve = deadlineYears * Math.exp(-5.2 * Math.max(0, adjustedRisk - 0.18));
-  const careerLifespanYears = clamp(
-    Math.min(baseLifespan, singularityCurve + 1.2) + escapeIndex * 0.8,
-    0.3,
-    deadlineYears + 1.5
-  );
   const currentIncome = userSurvey.profile.annualIncome ?? matchedJob.incomeBenchmark?.annualMedian ?? 5000000;
   const futureIncome = Math.round(currentIncome * (1 - adjustedRisk));
 
