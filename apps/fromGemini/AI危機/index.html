@@ -262,6 +262,37 @@
         line-height: 1.6;
       }
 
+      .share-preview {
+        aspect-ratio: 1200 / 630;
+      }
+
+      .a8-banner-highlight {
+        animation: pulseLine 1.2s ease-in-out 3;
+        box-shadow: 0 0 0 2px rgba(247, 201, 72, 0.4), 0 0 28px rgba(247, 201, 72, 0.32);
+      }
+
+      .shake-cta {
+        animation: shakeCta 1.8s ease-in-out infinite;
+      }
+
+      .loading-dots::after {
+        content: "";
+        animation: dots 1.1s steps(4, end) infinite;
+      }
+
+      @keyframes shakeCta {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        75% { transform: translateX(2px); }
+      }
+
+      @keyframes dots {
+        0% { content: ""; }
+        25% { content: "."; }
+        50% { content: ".."; }
+        75%, 100% { content: "..."; }
+      }
+
       @media (max-width: 640px) {
         .chart-shell--income {
           aspect-ratio: 4 / 3;
@@ -277,6 +308,10 @@
           transform: translateX(-50%);
           width: min(20rem, calc(100vw - 1.5rem));
           max-width: calc(100vw - 1.5rem);
+        }
+
+        .share-preview {
+          aspect-ratio: 16 / 10;
         }
       }
     </style>
@@ -500,13 +535,38 @@
               <p class="font-mono text-xs uppercase tracking-[0.34em] text-white/45">Result Area</p>
               <h3 class="mt-2 text-3xl font-black tracking-[-0.03em] sm:text-4xl">診断結果</h3>
             </div>
-            <div class="flex flex-wrap gap-3">
-              <button id="captureBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
-                画像として保存
-              </button>
-              <button id="shareXBtn" type="button" class="rounded-full bg-threat-blue px-4 py-3 text-sm font-black text-black transition hover:bg-[#46ecff]">
-                X に投稿
-              </button>
+          </div>
+
+          <div class="mb-6 grid gap-4 rounded-[28px] border border-threat-blue/30 bg-gradient-to-r from-[#0f1620]/90 to-[#111822]/90 p-4 sm:p-5 lg:grid-cols-[1fr_0.95fr]">
+            <div class="flex flex-col gap-4">
+              <p class="font-mono text-xs uppercase tracking-[0.22em] text-threat-amber">【残酷な事実】をフォロワーに共有して、生存確率を10%上げる</p>
+              <div class="flex flex-wrap gap-3">
+                <button id="captureBtn" type="button" class="rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/20 hover:bg-white/10">
+                  画像として保存
+                </button>
+                <button id="shareXBtn" type="button" class="rounded-full bg-threat-blue px-4 py-3 text-sm font-black text-black transition hover:bg-[#46ecff]">
+                  X に投稿
+                </button>
+              </div>
+              <div id="shareThanksBox" class="rounded-2xl border border-emerald-300/35 bg-emerald-500/10 p-4">
+                <p class="text-sm font-semibold text-emerald-200">次の一手もここから最短で進めましょう。</p>
+                <a
+                  id="a8Banner"
+                  href="https://www.a8.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-3 block rounded-xl border border-amber-300/30 bg-black/35 p-3 text-sm text-amber-100/90 transition"
+                >
+                  [広告] リスキリング講座・学習サービスの特集を見る
+                </a>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-black/30 p-3">
+              <p class="mb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-white/55">X投稿プレビュー</p>
+              <div class="share-preview overflow-hidden rounded-xl border border-white/10 bg-black/40">
+                <img id="sharePreviewImage" alt="X投稿プレビュー" class="hidden h-full w-full object-cover" />
+                <div id="sharePreviewEmpty" class="flex h-full items-center justify-center text-xs text-white/45">診断後に投稿画像プレビューが表示されます</div>
+              </div>
             </div>
           </div>
 
@@ -533,9 +593,9 @@
                 <div class="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
                   <div class="rounded-[30px] border border-white/10 bg-black/30 p-6">
                     <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45">AI Replacement Rate</p>
-                    <div class="mt-5 flex items-end gap-3">
-                      <span id="replacementRateValue" class="font-mono text-6xl font-black leading-none text-threat-red sm:text-8xl">0</span>
-                      <span class="mb-2 font-mono text-2xl font-bold text-white/70 sm:text-3xl">%</span>
+                    <div class="mt-5 flex flex-nowrap items-end gap-3 whitespace-nowrap">
+                      <span id="replacementRateValue" class="font-mono text-6xl font-black leading-none text-threat-red whitespace-nowrap sm:text-8xl">0</span>
+                      <span class="mb-2 font-mono text-2xl font-bold text-white/70 whitespace-nowrap sm:text-3xl">%</span>
                     </div>
                     <div class="mt-5 overflow-hidden rounded-full bg-white/10">
                       <div id="riskMeterFill" class="meter-track h-3 w-0 transition-all duration-1000"></div>
@@ -640,6 +700,44 @@
                 <p class="mt-3 text-sm leading-7 text-black/75">今の職種を延命するのか、移るのか。次の90日でやることを整理します。</p>
                 <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold">Action Plan <span class="transition group-hover:translate-x-1">→</span></span>
               </a>
+
+              <section id="nextActionPanel" class="hidden rounded-[32px] border border-emerald-300/35 bg-emerald-500/10 p-6">
+                <p class="font-mono text-xs uppercase tracking-[0.3em] text-emerald-200/85">Personalized Survival Strategy</p>
+                <div id="nextActionLoading" class="loading-dots mt-4 rounded-2xl border border-white/10 bg-black/25 px-4 py-4 text-sm text-emerald-100/90">
+                  あなたに最適なスクールを選定中
+                </div>
+                <div id="nextActionContent" class="mt-4 hidden space-y-4">
+                  <p id="nextActionHeadline" class="text-sm leading-7 text-emerald-100/95"></p>
+                  <p id="nextActionSubline" class="text-sm leading-7 text-emerald-100/90"></p>
+
+                  <div class="grid gap-3">
+                    <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">最初の30日</p>
+                      <p id="nextAction30" class="mt-2 text-sm leading-6 text-white/85"></p>
+                    </article>
+                    <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">60日</p>
+                      <p id="nextAction60" class="mt-2 text-sm leading-6 text-white/85"></p>
+                    </article>
+                    <article class="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <p class="font-mono text-xs uppercase tracking-[0.2em] text-emerald-200/80">90日</p>
+                      <p id="nextAction90" class="mt-2 text-sm leading-6 text-white/85"></p>
+                    </article>
+                  </div>
+
+                  <div class="rounded-2xl border border-emerald-300/30 bg-emerald-900/20 p-4">
+                    <p class="text-xs text-emerald-200/85">この戦略を実行するための最適な環境[PR]</p>
+                    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                      <a id="a8ConsultBtn" href="https://www.a8.net/" target="_blank" rel="noopener noreferrer" class="shake-cta rounded-xl bg-emerald-400 px-4 py-3 text-center text-sm font-bold text-emerald-950 transition hover:bg-emerald-300">
+                        無料で生存ルートの相談を開始する
+                      </a>
+                      <a id="a8CourseBtn" href="https://www.a8.net/" target="_blank" rel="noopener noreferrer" class="shake-cta rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-bold text-emerald-950 transition hover:bg-emerald-400">
+                        特別価格でAI講座を申し込む
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <section class="rounded-[32px] border border-emerald-400/30 bg-emerald-500/10 p-6">
                 <p class="font-mono text-xs uppercase tracking-[0.3em] text-emerald-300">Survival Strategy Roadmap</p>
@@ -765,6 +863,9 @@
         loadingTimer: null,
         loadingProgressTimer: null,
         toastTimer: null,
+        lastResult: null,
+        shareImageDataUrl: "",
+        nextActionTimer: null,
       };
 
       const els = {
@@ -815,6 +916,21 @@
         step3Months: document.getElementById("step3Months"),
         step6Months: document.getElementById("step6Months"),
         roiText: document.getElementById("roiText"),
+        sharePreviewImage: document.getElementById("sharePreviewImage"),
+        sharePreviewEmpty: document.getElementById("sharePreviewEmpty"),
+        shareThanksBox: document.getElementById("shareThanksBox"),
+        a8Banner: document.getElementById("a8Banner"),
+        ctaLink: document.getElementById("ctaLink"),
+        nextActionPanel: document.getElementById("nextActionPanel"),
+        nextActionLoading: document.getElementById("nextActionLoading"),
+        nextActionContent: document.getElementById("nextActionContent"),
+        nextActionHeadline: document.getElementById("nextActionHeadline"),
+        nextActionSubline: document.getElementById("nextActionSubline"),
+        nextAction30: document.getElementById("nextAction30"),
+        nextAction60: document.getElementById("nextAction60"),
+        nextAction90: document.getElementById("nextAction90"),
+        a8ConsultBtn: document.getElementById("a8ConsultBtn"),
+        a8CourseBtn: document.getElementById("a8CourseBtn"),
         infoTriggers: Array.from(document.querySelectorAll("[data-info-trigger]")),
         infoPopovers: Array.from(document.querySelectorAll("[data-info-popover]")),
       };
@@ -845,6 +961,9 @@
         els.cancelSeverityBtn.addEventListener("click", cancelSeverity);
         els.captureBtn.addEventListener("click", captureResult);
         els.shareXBtn.addEventListener("click", shareToX);
+        els.ctaLink.addEventListener("click", handleNextActionClick);
+        els.a8ConsultBtn.addEventListener("click", () => trackAffiliateClick("consult"));
+        els.a8CourseBtn.addEventListener("click", () => trackAffiliateClick("course"));
         els.infoTriggers.forEach((button) => {
           button.addEventListener("click", handleInfoTrigger);
         });
@@ -1232,12 +1351,15 @@
         const roadmap = buildRoadmap(job, adjustedRisk, futureIncome);
 
         return {
+          resultId: `result-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           jobId,
+          age,
           warningLabel: warning.warningLabel,
           scaryCopy: warning.scaryCopy,
           matchedJobTitle: job.job_title || job.jobTitle || "不明",
           matchedIndustry: category,
           replacementRate,
+          shareLifespanYears: Math.max(0.3, (10 / (Math.max(adjustedRisk, 0.03) * 1.5)) * (1 - age / 100)),
           incomeProbability,
           aiReadinessScore,
           escapeIndex: Math.round(escapeIndex * 100),
@@ -1275,8 +1397,10 @@
         drawIncomeChart(result.currentIncome, result.futureIncome, result.aiSkillScore);
         drawSkillRadarChart(result);
         renderRoadmap(result);
+        updateSharePreview(result);
         animateNumber(els.replacementRateValue, result.replacementRate, 1200, 2);
         updateThreatBackground(result.replacementRate);
+        state.lastResult = result;
 
         window.setTimeout(() => {
           els.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1581,11 +1705,155 @@
           return;
         }
 
-        const rate = els.replacementRateValue.textContent;
-        const job = els.matchedJobTitle.textContent;
-        const text = `${job} を診断した結果、AI代替率 ${rate}%。未来は固定されていないので、今のうちに動く。`;
-        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        if (!state.lastResult) {
+          return;
+        }
+
+        if (!state.shareImageDataUrl) {
+          state.shareImageDataUrl = generateShareImage(state.lastResult);
+        }
+
+        const rate = Number(state.lastResult.replacementRate).toFixed(2);
+        const lifespan = Number(state.lastResult.shareLifespanYears).toFixed(1);
+        const text = `私のAI代替率は${rate}%でした。職種余命は${lifespan}年。あなたの数値も診断してみてください。`;
+        const shareUrl = buildShareResultUrl(state.lastResult);
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
         window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      function handleNextActionClick(event) {
+        event.preventDefault();
+        if (!state.lastResult) {
+          return;
+        }
+
+        els.ctaLink.classList.add("hidden");
+        clearTimeout(state.nextActionTimer);
+        els.nextActionPanel.classList.remove("hidden");
+        els.nextActionLoading.classList.remove("hidden");
+        els.nextActionContent.classList.add("hidden");
+
+        state.nextActionTimer = window.setTimeout(() => {
+          renderNextActionPanel(state.lastResult);
+          els.nextActionLoading.classList.add("hidden");
+          els.nextActionContent.classList.remove("hidden");
+          els.nextActionPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 500);
+      }
+
+      function renderNextActionPanel(result) {
+        const declineRatio = Math.round(clamp01((result.currentIncome - result.futureIncome) / Math.max(result.currentIncome, 1)) * 100);
+
+        if (result.replacementRate >= 70) {
+          els.nextActionHeadline.textContent = `業界の再編はすでに始まっています。今のうちにAIスキルを習得し、上位10%の"操る側"へ回らなければ年収は${declineRatio}%減少します。`;
+        } else {
+          els.nextActionHeadline.textContent = "再編の初期段階です。今のうちにAI活用を前提とした働き方へ切り替えることで、将来の選択肢を増やせます。";
+        }
+
+        if ((result.age || 0) < 30) {
+          els.nextActionSubline.textContent = "キャリアの土台を築く今、AI耐性のないスキルに時間を投じるのは最大のリスクです。";
+        } else {
+          els.nextActionSubline.textContent = "これまでの経験を活かしつつ、AIを使いこなす側へ移ることで収入耐性を高められます。";
+        }
+
+        els.nextAction30.textContent = "最初の30日でAIツール（ChatGPT/Claude等）の実践導入";
+        els.nextAction60.textContent = "60日で業務フローの自動化スキルの習得";
+        els.nextAction90.textContent = "90日で新市場へのキャリアシフト";
+      }
+
+      function trackAffiliateClick(type) {
+        const payload = {
+          event: "a8_affiliate_click",
+          type,
+          resultId: state.lastResult?.resultId || "",
+          replacementRate: state.lastResult?.replacementRate || 0,
+          timestamp: Date.now(),
+        };
+        if (Array.isArray(window.dataLayer)) {
+          window.dataLayer.push(payload);
+        }
+        console.log("affiliate_click", payload);
+      }
+
+      function updateSharePreview(result) {
+        const dataUrl = generateShareImage(result);
+        state.shareImageDataUrl = dataUrl;
+        els.sharePreviewImage.src = dataUrl;
+        els.sharePreviewImage.classList.remove("hidden");
+        els.sharePreviewEmpty.classList.add("hidden");
+      }
+
+      function generateShareImage(result) {
+        const width = 1200;
+        const height = 630;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return "";
+        }
+
+        const bg = ctx.createLinearGradient(0, 0, width, height);
+        bg.addColorStop(0, "#061924");
+        bg.addColorStop(0.55, "#0f1521");
+        bg.addColorStop(1, "#160b0d");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+
+        const glowBlue = ctx.createRadialGradient(180, 120, 10, 180, 120, 340);
+        glowBlue.addColorStop(0, "rgba(0,229,255,0.34)");
+        glowBlue.addColorStop(1, "rgba(0,229,255,0)");
+        ctx.fillStyle = glowBlue;
+        ctx.fillRect(0, 0, width, height);
+
+        const glowRed = ctx.createRadialGradient(width - 220, height - 120, 10, width - 220, height - 120, 360);
+        glowRed.addColorStop(0, "rgba(255,75,75,0.30)");
+        glowRed.addColorStop(1, "rgba(255,75,75,0)");
+        ctx.fillStyle = glowRed;
+        ctx.fillRect(0, 0, width, height);
+
+        for (let y = 0; y < height; y += 4) {
+          ctx.fillStyle = y % 8 === 0 ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.01)";
+          ctx.fillRect(0, y, width, 1);
+        }
+
+        const replacementRateText = `AI代替率: ${Number(result.replacementRate).toFixed(2)}%`;
+        const lifespanText = `職種余命: ${Number(result.shareLifespanYears).toFixed(1)}年`;
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "900 94px 'Noto Sans JP', sans-serif";
+
+        ctx.fillStyle = "rgba(0,229,255,0.22)";
+        ctx.fillText(replacementRateText, width / 2 - 3, height / 2 - 42);
+        ctx.fillStyle = "rgba(255,75,75,0.22)";
+        ctx.fillText(replacementRateText, width / 2 + 3, height / 2 - 38);
+        ctx.fillStyle = "#ff4b4b";
+        ctx.fillText(replacementRateText, width / 2, height / 2 - 40);
+
+        ctx.font = "700 48px 'Noto Sans JP', sans-serif";
+        ctx.fillStyle = "rgba(247,201,72,0.95)";
+        ctx.fillText(lifespanText, width / 2, height / 2 + 44);
+
+        ctx.font = "700 30px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillText("AI余命宣告", width / 2, height - 70);
+        ctx.font = "500 18px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.64)";
+        ctx.fillText("https://ito-shiyou.github.io/ai-kiki", width / 2, height - 38);
+
+        return canvas.toDataURL("image/png");
+      }
+
+      function buildShareResultUrl(result) {
+        const params = new URLSearchParams({
+          rid: String(result.resultId || ""),
+          job: String(result.matchedJobTitle || ""),
+          rate: Number(result.replacementRate).toFixed(2),
+          life: Number(result.shareLifespanYears).toFixed(1),
+        });
+        return `${window.location.origin}/share/result?${params.toString()}`;
       }
 
       function startToastLoop() {

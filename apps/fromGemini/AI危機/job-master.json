@@ -1,7 +1,7 @@
 {
   "version": "2026-03-14",
   "generatedAt": "2026-03-14T00:00:00.000Z",
-  "totalJobs": 100,
+  "totalJobs": 114,
   "jobs": [
     {"job_code":"OFF001","job_title":"一般事務","industry_name":"事務","category":"事務","base_replacement_rate":0.96,"base_career_lifespan_years":1.6,"typical_tasks":["データ入力","書類作成","社内連絡"],"suggested_skills":["AI業務設計","顧客折衝","業務改善"]},
     {"job_code":"OFF002","job_title":"営業事務","industry_name":"事務","category":"事務","base_replacement_rate":0.94,"base_career_lifespan_years":1.9,"typical_tasks":["見積書作成","受発注処理","顧客対応"],"suggested_skills":["CRM運用","AI活用","提案支援"]},
@@ -107,6 +107,24 @@
     {"job_code":"SAL007","job_title":"カスタマーサクセス","industry_name":"販売・接客","category":"販売・接客","base_replacement_rate":0.51,"base_career_lifespan_years":4.2,"typical_tasks":["定着支援","問い合わせ対応","提案"],"suggested_skills":["業務設計支援","アップセル","顧客分析"]},
     {"job_code":"SAL008","job_title":"法人営業","industry_name":"販売・接客","category":"販売・接客","base_replacement_rate":0.39,"base_career_lifespan_years":5.3,"typical_tasks":["提案","商談","フォロー"],"suggested_skills":["課題解決提案","経営対話","AI営業活用"]},
     {"job_code":"SAL009","job_title":"個人営業","industry_name":"販売・接客","category":"販売・接客","base_replacement_rate":0.47,"base_career_lifespan_years":4.6,"typical_tasks":["訪問","提案","契約"],"suggested_skills":["信頼構築","紹介獲得","クロージング"]},
-    {"job_code":"SAL010","job_title":"不動産営業","industry_name":"販売・接客","category":"販売・接客","base_replacement_rate":0.44,"base_career_lifespan_years":4.9,"typical_tasks":["物件提案","内見","契約調整"],"suggested_skills":["資金計画支援","投資提案","高額商談"]}
+    {"job_code":"SAL010","job_title":"不動産営業","industry_name":"販売・接客","category":"販売・接客","base_replacement_rate":0.44,"base_career_lifespan_years":4.9,"typical_tasks":["物件提案","内見","契約調整"],"suggested_skills":["資金計画支援","投資提案","高額商談"]},
+
+    {"job_code":"TRN001","job_title":"パイロット","industry_name":"運輸・交通","category":"運輸・交通","base_replacement_rate":0.15,"base_career_lifespan_years":6.8,"typical_tasks":["操縦","運行管理","安全確認"],"suggested_skills":["自動操縦監視","クルー管理","AI飛行支援活用"]},
+    {"job_code":"TRN002","job_title":"機長補佐","industry_name":"運輸・交通","category":"運輸・交通","base_replacement_rate":0.18,"base_career_lifespan_years":6.5,"typical_tasks":["副操縦","システム監視","サポート"],"suggested_skills":["複雑判断","チームワーク","自動化監視"]},
+    {"job_code":"TRN003","job_title":"航空管制官","industry_name":"運輸・交通","category":"運輸・交通","base_replacement_rate":0.22,"base_career_lifespan_years":6.2,"typical_tasks":["指示","監視","調整"],"suggested_skills":["複雑状況判断","危機対応","システム活用"]},
+    {"job_code":"TRN004","job_title":"鉄道運転士","industry_name":"運輸・交通","category":"運輸・交通","base_replacement_rate":0.31,"base_career_lifespan_years":5.4,"typical_tasks":["運転","安全確認","乗客対応"],"suggested_skills":["異常判断","保守知識","乗客対応"]},
+    {"job_code":"TRN005","job_title":"船舶操縦士","industry_name":"運輸・交通","category":"運輸・交通","base_replacement_rate":0.26,"base_career_lifespan_years":5.8,"typical_tasks":["操舵","航海計画","安全管理"],"suggested_skills":["海象判断","国際ルール","チーム指揮"]},
+
+    {"job_code":"MED011","job_title":"獣医師","industry_name":"医療・介護","category":"医療・介護","base_replacement_rate":0.25,"base_career_lifespan_years":6.0,"typical_tasks":["診察","治療","飼い主対応"],"suggested_skills":["高度診断","飼い主教育","経営管理"]},
+    {"job_code":"MED012","job_title":"歯科医","industry_name":"医療・介護","category":"医療・介護","base_replacement_rate":0.16,"base_career_lifespan_years":6.8,"typical_tasks":["診察","治療","予防指導"],"suggested_skills":["複雑治療","患者関係","経営戦略"]},
+
+    {"job_code":"SAF001","job_title":"消防士","industry_name":"安全・公務","category":"安全・公務","base_replacement_rate":0.14,"base_career_lifespan_years":6.9,"typical_tasks":["現場出動","救助","消火活動"],"suggested_skills":["現場判断","チーム指揮","救急対応"]},
+    {"job_code":"SAF002","job_title":"警察官","industry_name":"安全・公務","category":"安全・公務","base_replacement_rate":0.19,"base_career_lifespan_years":6.6,"typical_tasks":["巡回","取調べ","事件捜査"],"suggested_skills":["法的判断","コミュニティ構築","複雑交渉"]},
+    {"job_code":"SAF003","job_title":"公務員（行政）","industry_name":"安全・公務","category":"安全・公務","base_replacement_rate":0.48,"base_career_lifespan_years":4.8,"typical_tasks":["書類作成","許可審査","窓口対応"],"suggested_skills":["法規理解","政策企画","市民対応"]},
+
+    {"job_code":"CRE001","job_title":"映画監督","industry_name":"創造・表現","category":"創造・表現","base_replacement_rate":0.31,"base_career_lifespan_years":5.5,"typical_tasks":["企画","演出","撮影管理"],"suggested_skills":["ストーリーテリング","クルー管理","資金調達"]},
+    {"job_code":"CRE002","job_title":"音楽プロデューサー","industry_name":"創造・表現","category":"創造・表現","base_replacement_rate":0.26,"base_career_lifespan_years":5.9,"typical_tasks":["楽曲制作","アーティスト育成","スタジオ管理"],"suggested_skills":["音響感性","市場理解","人材育成"]},
+    {"job_code":"CRE003","job_title":"グラフィックデザイナー","industry_name":"創造・表現","category":"創造・表現","base_replacement_rate":0.68,"base_career_lifespan_years":3.2,"typical_tasks":["デザイン","修正","ブランド管理"],"suggested_skills":["クリエイティブ戦略","トレンド把握","ディレクション"]},
+    {"job_code":"CRE004","job_title":"イラストレーター","industry_name":"創造・表現","category":"創造・表現","base_replacement_rate":0.72,"base_career_lifespan_years":2.9,"typical_tasks":["制作","修正","納品"],"suggested_skills":["独自スタイル開発","市場営業","クライアント管理"]}
   ]
 }
