@@ -28,12 +28,12 @@
       "dest": "/api/og-image.js"
     },
     {
-      "src": "/share",
-      "dest": "/share.html"
+      "src": "/api/og-card",
+      "dest": "/api/og-card.js"
     },
     {
-      "src": "/og-card",
-      "dest": "/og-card.html"
+      "src": "/share",
+      "dest": "/share.html"
     },
     {
       "src": "/job-master.json",

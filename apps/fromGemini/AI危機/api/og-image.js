@@ -27,7 +27,7 @@ function handler(req, res) {
     s: String(score),
   }).toString();
 
-  const cardUrl = `${origin}/og-card?${cardQuery}`;
+  const cardUrl = `${origin}/api/og-card?${cardQuery}`;
   const imageUrl = `https://image.thum.io/get/png/width/1200/crop/630/noanimate/${cardUrl}`;
 
   res.setHeader('Cache-Control', 'public, max-age=86400');
