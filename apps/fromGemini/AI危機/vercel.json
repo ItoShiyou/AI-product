@@ -24,6 +24,10 @@
       "dest": "/api/share.js"
     },
     {
+      "src": "/api/og-image",
+      "dest": "/api/og-image.js"
+    },
+    {
       "src": "/share",
       "dest": "/share.html"
     },

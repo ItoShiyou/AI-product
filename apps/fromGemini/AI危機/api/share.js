@@ -19,7 +19,7 @@ function handler(req, res) {
   const origin = `${proto}://${host}`;
 
   const qp = new URLSearchParams({ r: String(r), l: String(l), j: String(j), w: String(w), s: String(s) }).toString();
-  const ogImage = `${origin}/api/og?${qp}`;
+  const ogImage = `${origin}/api/og-image?${qp}`;
   const canonical = `${origin}/api/share?${qp}`;
   const uiUrl = `${origin}/share?${qp}`;
 
