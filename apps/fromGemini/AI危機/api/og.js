@@ -29,7 +29,7 @@ function parseFromData(data) {
   }
 }
 
-export default function handler(req, res) {
+function handler(req, res) {
   const { r, l, j, w = '計測', s = '-' } = req.query || {};
   const fromData = parseFromData(req.query?.data);
   const params = (r && l && j) ? { r, l, j, w, s } : fromData;
@@ -80,3 +80,5 @@ export default function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=86400');
   return res.status(200).send(svg);
 }
+
+module.exports = handler;

@@ -1,9 +1,39 @@
 {
-  "buildCommand": "npm install",
-  "public": true,
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 10
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "*.json",
+      "use": "@vercel/static"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/og",
+      "dest": "/api/og.js"
+    },
+    {
+      "src": "/api/share",
+      "dest": "/api/share.js"
+    },
+    {
+      "src": "/share",
+      "dest": "/share.html"
+    },
+    {
+      "src": "/job-master.json",
+      "dest": "/job-master.json"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
+    ]
 }

@@ -7,7 +7,7 @@ function escHtml(v = '') {
     .replace(/'/g, '&#39;');
 }
 
-export default function handler(req, res) {
+function handler(req, res) {
   const { r = '', l = '', j = '', w = '', s = '' } = req.query;
 
   if (!r || !l || !j) {
@@ -58,3 +58,5 @@ export default function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=600');
   res.status(200).send(html);
 }
+
+module.exports = handler;
