@@ -8,13 +8,27 @@ function clampText(v, max = 24) {
 }
 
 function handler(req, res) {
-  const { r = '', l = '', j = '' } = req.query || {};
+  const { r = '', l = '', j = '', w = '計測', s = '-' } = req.query || {};
   const rate = toNum(r, 0).toFixed(2);
   const life = toNum(l, 0).toFixed(1);
   const job = clampText(j || 'DIAGNOSIS', 28) || 'DIAGNOSIS';
+  const warn = clampText(w || '計測', 12);
+  const score = clampText(s || '-', 6);
 
-  const text = `AI KIKI | ${job} | RISK ${rate}% | LIFE ${life}y`;
-  const imageUrl = `https://dummyimage.com/1200x630/061924/ffffff.png&text=${encodeURIComponent(text)}`;
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers.host;
+  const origin = `${proto}://${host}`;
+
+  const cardQuery = new URLSearchParams({
+    r: String(rate),
+    l: String(life),
+    j: String(job),
+    w: String(warn),
+    s: String(score),
+  }).toString();
+
+  const cardUrl = `${origin}/og-card?${cardQuery}`;
+  const imageUrl = `https://image.thum.io/get/png/width/1200/crop/630/noanimate/${cardUrl}`;
 
   res.setHeader('Cache-Control', 'public, max-age=86400');
   res.redirect(302, imageUrl);

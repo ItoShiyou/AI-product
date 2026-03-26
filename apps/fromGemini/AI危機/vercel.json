@@ -32,6 +32,10 @@
       "dest": "/share.html"
     },
     {
+      "src": "/og-card",
+      "dest": "/og-card.html"
+    },
+    {
       "src": "/job-master.json",
       "dest": "/job-master.json"
     },
