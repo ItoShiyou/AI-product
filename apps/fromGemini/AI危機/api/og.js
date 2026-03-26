@@ -1,79 +1,111 @@
-import { createCanvas } from 'canvas';
+import { ImageResponse } from '@vercel/og';
 
-export default async function handler(req, res) {
-  const { data } = req.query;
+export const config = {
+  runtime: 'edge',
+};
 
-  if (!data) {
-    return res.status(400).json({ error: 'Missing data param' });
-  }
+function num(v, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
 
+function parseFromData(data) {
   try {
-    // ★ Base64 デコード
-    const resultJson = decodeURIComponent(escape(atob(data)));
-    const result = JSON.parse(resultJson);
-
-    // ★ Canvas 1200x630 で og:image 用画像生成
-    const canvas = createCanvas(1200, 630);
-    const ctx = canvas.getContext('2d');
-
-    // グラデーション背景
-    const bg = ctx.createLinearGradient(0, 0, 1200, 630);
-    bg.addColorStop(0, '#061924');
-    bg.addColorStop(0.55, '#0f1521');
-    bg.addColorStop(1, '#160b0d');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // グロー効果（青）
-    const glowBlue = ctx.createRadialGradient(180, 120, 10, 180, 120, 340);
-    glowBlue.addColorStop(0, 'rgba(0,229,255,0.34)');
-    glowBlue.addColorStop(1, 'rgba(0,229,255,0)');
-    ctx.fillStyle = glowBlue;
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // グロー効果（赤）
-    const glowRed = ctx.createRadialGradient(1000, 500, 10, 1000, 500, 360);
-    glowRed.addColorStop(0, 'rgba(255,75,75,0.30)');
-    glowRed.addColorStop(1, 'rgba(255,75,75,0)');
-    ctx.fillStyle = glowRed;
-    ctx.fillRect(0, 0, 1200, 630);
-
-    // スキャンライン
-    for (let y = 0; y < 630; y += 4) {
-      ctx.fillStyle = y % 8 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)';
-      ctx.fillRect(0, y, 1200, 1);
-    }
-
-    // ★ テキスト描画
-    const replacementRateText = `AI代替率: ${Number(result.replacementRate).toFixed(2)}%`;
-    const lifespanText = `職種余命: ${Number(result.shareLifespanYears).toFixed(1)}年`;
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // AI代替率（大きい赤テキスト）
-    ctx.font = 'bold 94px "Noto Sans JP", sans-serif';
-    ctx.fillStyle = '#ff4b4b';
-    ctx.fillText(replacementRateText, 600, 294);
-
-    // 職種余命（黄色）
-    ctx.font = 'bold 48px "Noto Sans JP", sans-serif';
-    ctx.fillStyle = '#f7c948';
-    ctx.fillText(lifespanText, 600, 414);
-
-    // ロゴ
-    ctx.font = 'bold 30px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.fillText('AI余命宣告', 600, 560);
-
-    // ★ PNG として返却
-    const buffer = canvas.toBuffer('image/png');
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.send(buffer);
-
-  } catch (error) {
-    console.error('OG image generation error:', error);
-    res.status(500).json({ error: 'Image generation failed' });
+    if (!data) return null;
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(data))));
+    return {
+      r: num(decoded.replacementRate).toFixed(2),
+      l: num(decoded.shareLifespanYears).toFixed(1),
+      j: String(decoded.matchedJobTitle || '診断結果').slice(0, 30),
+      w: String(decoded.warningLabel || ''),
+      s: String(Math.round(num(decoded.aiReadinessScore))),
+    };
+  } catch {
+    return null;
   }
+}
+
+export default function handler(req) {
+  const { searchParams } = new URL(req.url);
+
+  const direct = {
+    r: searchParams.get('r'),
+    l: searchParams.get('l'),
+    j: searchParams.get('j'),
+    w: searchParams.get('w'),
+    s: searchParams.get('s'),
+  };
+  const fromData = parseFromData(searchParams.get('data'));
+  const params = (direct.r && direct.l && direct.j) ? direct : fromData;
+
+  if (!params || !params.r || !params.l || !params.j) {
+    return new Response('Missing parameters', { status: 400 });
+  }
+
+  const rateText = `AI代替率: ${num(params.r).toFixed(2)}%`;
+  const lifeText = `職種余命: ${num(params.l).toFixed(1)}年`;
+  const jobText = String(params.j).slice(0, 30);
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '1200px',
+          height: '630px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, #061924 0%, #0f1521 55%, #160b0d 100%)',
+          color: '#ffffff',
+          padding: '52px 64px',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: '-120px',
+            top: '-120px',
+            width: '420px',
+            height: '420px',
+            borderRadius: '999px',
+            background: 'rgba(0,229,255,0.18)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            right: '-120px',
+            bottom: '-140px',
+            width: '460px',
+            height: '460px',
+            borderRadius: '999px',
+            background: 'rgba(255,75,75,0.16)',
+          }}
+        />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ fontSize: '32px', letterSpacing: '0.12em', opacity: 0.9 }}>AI余命宣告</div>
+          <div style={{ fontSize: '46px', fontWeight: 700 }}>{jobText}</div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ fontSize: '92px', fontWeight: 800, color: '#ff4b4b' }}>{rateText}</div>
+          <div style={{ fontSize: '48px', fontWeight: 700, color: '#f7c948' }}>{lifeText}</div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '26px', opacity: 0.9 }}>
+          <div>警告レベル: {String(params.w || '計測')}</div>
+          <div>AI準備度: {String(params.s || '-')}</div>
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        'Cache-Control': 'public, max-age=86400',
+      },
+    }
+  );
 }

@@ -8,6 +8,7 @@
     "build:types": "tsc"
   },
   "dependencies": {
+    "@vercel/og": "^0.8.5",
     "express": "^4.18.2"
   },
   "devDependencies": {

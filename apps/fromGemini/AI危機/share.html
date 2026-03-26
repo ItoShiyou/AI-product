@@ -240,7 +240,7 @@
         
         // ★ X シェアリンク生成
         const text = `私のAI代替率は${r}%でした。職種余命は${l}年。あなたの数値も診断してみてください。`;
-        const shareUrl = `${window.location.origin}/share?r=${r}&l=${l}&j=${encodeURIComponent(j)}&w=${w}&s=${s}`;
+        const shareUrl = `${window.location.origin}/api/share?r=${r}&l=${l}&j=${encodeURIComponent(j)}&w=${w}&s=${s}`;
         const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
         document.getElementById('shareXLink').href = tweetUrl;
         
