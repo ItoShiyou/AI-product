@@ -1,111 +1,82 @@
-import { ImageResponse } from '@vercel/og';
-
-export const config = {
-  runtime: 'edge',
-};
-
-function num(v, fallback = 0) {
+function toNum(v, fallback = 0) {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }
 
+function escXml(v = '') {
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 function parseFromData(data) {
+  if (!data) return null;
   try {
-    if (!data) return null;
-    const decoded = JSON.parse(decodeURIComponent(escape(atob(data))));
+    const jsonText = Buffer.from(String(data), 'base64').toString('utf8');
+    const decoded = JSON.parse(jsonText);
     return {
-      r: num(decoded.replacementRate).toFixed(2),
-      l: num(decoded.shareLifespanYears).toFixed(1),
+      r: toNum(decoded.replacementRate).toFixed(2),
+      l: toNum(decoded.shareLifespanYears).toFixed(1),
       j: String(decoded.matchedJobTitle || '診断結果').slice(0, 30),
-      w: String(decoded.warningLabel || ''),
-      s: String(Math.round(num(decoded.aiReadinessScore))),
+      w: String(decoded.warningLabel || '計測'),
+      s: String(Math.round(toNum(decoded.aiReadinessScore))),
     };
   } catch {
     return null;
   }
 }
 
-export default function handler(req) {
-  const { searchParams } = new URL(req.url);
-
-  const direct = {
-    r: searchParams.get('r'),
-    l: searchParams.get('l'),
-    j: searchParams.get('j'),
-    w: searchParams.get('w'),
-    s: searchParams.get('s'),
-  };
-  const fromData = parseFromData(searchParams.get('data'));
-  const params = (direct.r && direct.l && direct.j) ? direct : fromData;
+export default function handler(req, res) {
+  const { r, l, j, w = '計測', s = '-' } = req.query || {};
+  const fromData = parseFromData(req.query?.data);
+  const params = (r && l && j) ? { r, l, j, w, s } : fromData;
 
   if (!params || !params.r || !params.l || !params.j) {
-    return new Response('Missing parameters', { status: 400 });
+    return res.status(400).json({ error: 'Missing params: r, l, j or data' });
   }
 
-  const rateText = `AI代替率: ${num(params.r).toFixed(2)}%`;
-  const lifeText = `職種余命: ${num(params.l).toFixed(1)}年`;
-  const jobText = String(params.j).slice(0, 30);
+  const rateText = `AI代替率: ${toNum(params.r).toFixed(2)}%`;
+  const lifeText = `職種余命: ${toNum(params.l).toFixed(1)}年`;
+  const jobText = escXml(String(params.j).slice(0, 30));
+  const warnText = escXml(String(params.w || '計測'));
+  const readyText = escXml(String(params.s || '-'));
 
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '1200px',
-          height: '630px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          background: 'linear-gradient(135deg, #061924 0%, #0f1521 55%, #160b0d 100%)',
-          color: '#ffffff',
-          padding: '52px 64px',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            left: '-120px',
-            top: '-120px',
-            width: '420px',
-            height: '420px',
-            borderRadius: '999px',
-            background: 'rgba(0,229,255,0.18)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            right: '-120px',
-            bottom: '-140px',
-            width: '460px',
-            height: '460px',
-            borderRadius: '999px',
-            background: 'rgba(255,75,75,0.16)',
-          }}
-        />
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI危機診断のシェア画像">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#061924"/>
+      <stop offset="55%" stop-color="#0f1521"/>
+      <stop offset="100%" stop-color="#160b0d"/>
+    </linearGradient>
+    <radialGradient id="blueGlow" cx="0.18" cy="0.2" r="0.45">
+      <stop offset="0%" stop-color="rgba(0,229,255,0.34)"/>
+      <stop offset="100%" stop-color="rgba(0,229,255,0)"/>
+    </radialGradient>
+    <radialGradient id="redGlow" cx="0.84" cy="0.78" r="0.50">
+      <stop offset="0%" stop-color="rgba(255,75,75,0.30)"/>
+      <stop offset="100%" stop-color="rgba(255,75,75,0)"/>
+    </radialGradient>
+  </defs>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ fontSize: '32px', letterSpacing: '0.12em', opacity: 0.9 }}>AI余命宣告</div>
-          <div style={{ fontSize: '46px', fontWeight: 700 }}>{jobText}</div>
-        </div>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#blueGlow)"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#redGlow)"/>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div style={{ fontSize: '92px', fontWeight: 800, color: '#ff4b4b' }}>{rateText}</div>
-          <div style={{ fontSize: '48px', fontWeight: 700, color: '#f7c948' }}>{lifeText}</div>
-        </div>
+  <text x="600" y="84" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="30" font-family="sans-serif" font-weight="700">AI余命宣告</text>
+  <text x="600" y="136" text-anchor="middle" fill="rgba(255,255,255,0.95)" font-size="44" font-family="sans-serif" font-weight="700">${jobText}</text>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '26px', opacity: 0.9 }}>
-          <div>警告レベル: {String(params.w || '計測')}</div>
-          <div>AI準備度: {String(params.s || '-')}</div>
-        </div>
-      </div>
-    ),
-    {
-      width: 1200,
-      height: 630,
-      headers: {
-        'Cache-Control': 'public, max-age=86400',
-      },
-    }
-  );
+  <text x="600" y="320" text-anchor="middle" fill="#ff4b4b" font-size="92" font-family="sans-serif" font-weight="800">${escXml(rateText)}</text>
+  <text x="600" y="410" text-anchor="middle" fill="#f7c948" font-size="48" font-family="sans-serif" font-weight="700">${escXml(lifeText)}</text>
+
+  <text x="120" y="560" fill="rgba(255,255,255,0.85)" font-size="26" font-family="sans-serif" font-weight="600">警告レベル: ${warnText}</text>
+  <text x="810" y="560" fill="rgba(255,255,255,0.85)" font-size="26" font-family="sans-serif" font-weight="600">AI準備度: ${readyText}</text>
+</svg>`;
+
+  res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  return res.status(200).send(svg);
 }
