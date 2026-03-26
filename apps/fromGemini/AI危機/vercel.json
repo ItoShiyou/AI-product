@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm install",
+  "public": true,
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10
+    }
+  }
+}

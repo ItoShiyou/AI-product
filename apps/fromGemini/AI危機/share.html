@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI危機診断 - 結果をシェア</title>
+  
+  <!-- ★ OGP タグ（Twitter が読む） -->
+  <meta property="og:title" content="AI危機診断" />
+  <meta property="og:description" content="あなたの市場価値の賞味期限を診断" />
+  <meta id="ogImage" property="og:image" content="" />
+  <meta property="og:type" content="website" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      color-scheme: dark;
+      --threat-start: #061924;
+      --threat-end: #121212;
+      --threat-accent: #00e5ff;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0, 229, 255, 0.14), transparent 32%),
+        radial-gradient(circle at 80% 0%, rgba(255, 75, 75, 0.14), transparent 28%),
+        linear-gradient(135deg, var(--threat-start), var(--threat-end));
+      transition: background 0.8s ease;
+      color: white;
+    }
+
+    .noise::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      mix-blend-mode: soft-light;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12) 0, transparent 22%),
+        radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.08) 0, transparent 18%);
+    }
+  </style>
+</head>
+<body class="noise text-white antialiased">
+  <div id="loading" class="fixed inset-0 flex items-center justify-center">
+    <div class="text-center">
+      <p class="text-lg font-semibold mb-4">診断結果を読み込み中...</p>
+      <div class="w-8 h-8 rounded-full border-2 border-white/30 border-t-white animate-spin mx-auto"></div>
+    </div>
+  </div>
+  
+  <div id="result" class="hidden relative mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5 mb-8">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-[0.42em] text-blue-400/80">AI危機診断</p>
+        <h1 class="mt-2 text-lg font-bold tracking-[0.18em] text-white/90">診断結果</h1>
+      </div>
+      <a 
+        href="/" 
+        class="rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-xs text-white/70 hover:bg-white/10 transition"
+      >
+        別の診断を実行
+      </a>
+    </header>
+
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 backdrop-blur">
+      <div class="grid gap-6 md:grid-cols-2">
+        <!-- 左: 結果表示 -->
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45 mb-3">診断結果</p>
+          <h2 id="resultTitle" class="text-3xl font-bold text-white mb-4"></h2>
+          <p class="text-sm text-white/60 mb-6" id="resultCategory"></p>
+          
+          <div class="space-y-6">
+            <div class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45 mb-2">AI代替率</p>
+              <p id="resultRate" class="text-5xl font-black text-red-500"></p>
+            </div>
+            
+            <div class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45 mb-2">職種余命</p>
+              <p id="resultLifespan" class="text-4xl font-bold text-amber-400"></p>
+            </div>
+
+            <div class="rounded-2xl border border-white/10 bg-black/30 p-4">
+              <p class="font-mono text-xs uppercase tracking-[0.2em] text-white/45 mb-2">AI準備度</p>
+              <p id="resultAiReadiness" class="text-4xl font-bold text-blue-400"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右: og:image プレビュー -->
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-white/45 mb-3">Xシェアプレビュー</p>
+          <div id="previewContainer" class="rounded-2xl border border-white/10 bg-black/30 p-3 aspect-video flex items-center justify-center">
+            <img id="previewImage" alt="シェア画像" class="rounded-lg w-full h-full object-cover" />
+            <div id="previewEmpty" class="text-center text-white/45 text-sm">
+              og:image を取得中...
+            </div>
+          </div>
+          
+          <a 
+            id="shareXLink"
+            href="#" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-4 block rounded-full bg-blue-500 text-black px-6 py-3 font-bold text-center hover:bg-blue-600 transition"
+          >
+            X に投稿する
+          </a>
+        </div>
+      </div>
+
+      <div id="warningBox" class="mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-red-400 mb-2"><span id="warningLabel"></span> / 警告レベル</p>
+        <p id="scaryCopy" class="text-sm leading-6 text-white/80"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ★ Canvas で og:image 用の画像を生成
+    function generateShareImage(data) {
+      const width = 1200;
+      const height = 630;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+
+      // グラデーション背景
+      const bg = ctx.createLinearGradient(0, 0, width, height);
+      bg.addColorStop(0, '#061924');
+      bg.addColorStop(0.55, '#0f1521');
+      bg.addColorStop(1, '#160b0d');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      // グロー効果（青）
+      const glowBlue = ctx.createRadialGradient(180, 120, 10, 180, 120, 340);
+      glowBlue.addColorStop(0, 'rgba(0,229,255,0.34)');
+      glowBlue.addColorStop(1, 'rgba(0,229,255,0)');
+      ctx.fillStyle = glowBlue;
+      ctx.fillRect(0, 0, width, height);
+
+      // グロー効果（赤）
+      const glowRed = ctx.createRadialGradient(width - 220, height - 120, 10, width - 220, height - 120, 360);
+      glowRed.addColorStop(0, 'rgba(255,75,75,0.30)');
+      glowRed.addColorStop(1, 'rgba(255,75,75,0)');
+      ctx.fillStyle = glowRed;
+      ctx.fillRect(0, 0, width, height);
+
+      // スキャンライン
+      for (let y = 0; y < height; y += 4) {
+        ctx.fillStyle = y % 8 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)';
+        ctx.fillRect(0, y, width, 1);
+      }
+
+      // テキスト描画
+      const replacementRateText = `AI代替率: ${data.r}%`;
+      const lifespanText = `職種余命: ${data.l}年`;
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = "900 94px 'Noto Sans JP', sans-serif";
+
+      // AI代替率（グロー + 赤テキスト）
+      ctx.fillStyle = 'rgba(0,229,255,0.22)';
+      ctx.fillText(replacementRateText, width / 2 - 3, height / 2 - 42);
+      ctx.fillStyle = 'rgba(255,75,75,0.22)';
+      ctx.fillText(replacementRateText, width / 2 + 3, height / 2 - 38);
+      ctx.fillStyle = '#ff4b4b';
+      ctx.fillText(replacementRateText, width / 2, height / 2 - 40);
+
+      // 職種余命（黄色）
+      ctx.font = "700 48px 'Noto Sans JP', sans-serif";
+      ctx.fillStyle = 'rgba(247,201,72,0.95)';
+      ctx.fillText(lifespanText, width / 2, height / 2 + 44);
+
+      // ロゴ
+      ctx.font = "700 30px 'JetBrains Mono', monospace";
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText('AI余命宣告', width / 2, height - 70);
+      ctx.font = "500 18px 'JetBrains Mono', monospace";
+      ctx.fillStyle = 'rgba(255,255,255,0.64)';
+      ctx.fillText('https://ai-kiki-diagnostic.vercel.app', width / 2, height - 38);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    async function loadResult() {
+      const params = new URLSearchParams(location.search);
+      
+      // ★ 簡潔な URL パラメータから データ抽出
+      const r = params.get('r');  // AI代替率
+      const l = params.get('l');  // 職種余命
+      const j = params.get('j');  // 職種
+      const w = params.get('w');  // 警告レベル
+      const s = params.get('s');  // AI準備度
+      
+      if (!r || !l || !j) {
+        document.getElementById('loading').innerHTML = '<p class="text-red-500 text-lg">URLが無効です</p>';
+        return;
+      }
+      
+      try {
+        // ★ og:image を Canvas で生成
+        const shareData = { r, l, j, w, s };
+        const ogImageDataUrl = generateShareImage(shareData);
+        document.getElementById('ogImage').content = ogImageDataUrl;
+        
+        // ★ 結果表示
+        document.getElementById('resultTitle').textContent = j;
+        document.getElementById('resultCategory').textContent = '診断結果';
+        document.getElementById('resultRate').textContent = `${r}%`;
+        document.getElementById('resultLifespan').textContent = `${l}年`;
+        document.getElementById('resultAiReadiness').textContent = s || '—';
+        document.getElementById('warningLabel').textContent = w || '計測';
+        document.getElementById('scaryCopy').textContent = `${j} のAI代替率は ${r}% です。職種余命は約 ${l}年と推定されています。`;
+        
+        // ★ og:image プレビュー表示
+        const previewImg = document.getElementById('previewImage');
+        previewImg.src = ogImageDataUrl;
+        setTimeout(() => {
+          document.getElementById('previewEmpty').style.display = 'none';
+        }, 100);
+        
+        // ★ X シェアリンク生成
+        const text = `私のAI代替率は${r}%でした。職種余命は${l}年。あなたの数値も診断してみてください。`;
+        const shareUrl = `${window.location.origin}/share?r=${r}&l=${l}&j=${encodeURIComponent(j)}&w=${w}&s=${s}`;
+        const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+        document.getElementById('shareXLink').href = tweetUrl;
+        
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('result').classList.remove('hidden');
+        
+      } catch (error) {
+        console.error(error);
+        document.getElementById('loading').innerHTML = '<p class="text-red-500 text-lg">データの読み込みに失敗しました</p>';
+      }
+    }
+    
+    loadResult();
+  </script>
+</body>
+</html>

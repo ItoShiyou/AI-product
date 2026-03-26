@@ -1709,14 +1709,26 @@
           return;
         }
 
-        if (!state.shareImageDataUrl) {
-          state.shareImageDataUrl = generateShareImage(state.lastResult);
-        }
-
-        const rate = Number(state.lastResult.replacementRate).toFixed(2);
-        const lifespan = Number(state.lastResult.shareLifespanYears).toFixed(1);
+        const result = state.lastResult;
+        
+        // ★ 修正：Twitter シェアに必要な情報だけを URL に埋め込み
+        // 最小限のデータで URL を短縮
+        const params = new URLSearchParams({
+          r: Number(result.replacementRate).toFixed(2),        // AI代替率
+          l: Number(result.shareLifespanYears).toFixed(1),     // 職種余命
+          j: String(result.matchedJobTitle || '').substring(0, 30),  // 職種（最大30文字）
+          w: String(result.warningLabel || ''),                // 警告レベル
+          s: String(Math.round(result.aiReadinessScore || 0))  // AI準備度
+        });
+        
+        // ★ シェアページURL（簡潔版）
+        const shareUrl = `${window.location.origin}/share?${params.toString()}`;
+        
+        // 投稿テキスト生成
+        const rate = Number(result.replacementRate).toFixed(2);
+        const lifespan = Number(result.shareLifespanYears).toFixed(1);
         const text = `私のAI代替率は${rate}%でした。職種余命は${lifespan}年。あなたの数値も診断してみてください。`;
-        const shareUrl = buildShareResultUrl(state.lastResult);
+        
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
         window.open(url, "_blank", "noopener,noreferrer");
       }
