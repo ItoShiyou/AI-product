@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Texas Hold'em Table UI</title>
+    <link rel="stylesheet" href="/src/web/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>Texas Hold'em Table</h1>
+        <div class="status" id="status-text">読み込み中...</div>
+      </header>
+
+      <section class="panel setup" id="setup-panel">
+        <h2>ゲーム設定</h2>
+        <label>
+          名前
+          <input id="player-name" type="text" maxlength="16" value="You" />
+        </label>
+        <label>
+          Bot数
+          <select id="bot-count">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </label>
+        <button id="start-game">ゲーム開始</button>
+      </section>
+
+      <section class="panel table" id="table-panel">
+        <div class="hud">
+          <div class="chip"><span>Street</span><strong id="street">-</strong></div>
+          <div class="chip"><span>Pot</span><strong id="pot">0</strong></div>
+          <div class="chip"><span>Current Bet</span><strong id="current-bet">0</strong></div>
+          <div class="chip"><span>To Call</span><strong id="to-call">0</strong></div>
+        </div>
+
+        <section class="table-felt">
+          <h2>テーブル</h2>
+          <div class="table-center">
+            <div class="pot-chip">POT <strong id="pot-center">0</strong></div>
+            <div class="cards board" id="board-cards" data-slot-count="5"></div>
+          </div>
+          <ul id="players" class="players-ring"></ul>
+        </section>
+
+        <section class="panel result-panel">
+          <h2>ショーダウン結果</h2>
+          <ul id="showdown"></ul>
+          <div id="winners" class="winners"></div>
+        </section>
+
+        <section class="panel payout-panel" id="payout-panel">
+          <h2>賞金移動サマリ</h2>
+          <div id="winner-banner" class="winner-banner">勝者はまだ確定していません</div>
+          <ul id="chip-movements" class="chip-movements"></ul>
+        </section>
+
+        <h2>ログ</h2>
+        <ul id="logs" class="log-list"></ul>
+
+        <section class="panel my-hand-panel">
+          <h2>あなたの手札</h2>
+          <div class="cards hand" id="hole-cards" data-slot-count="2"></div>
+        </section>
+
+        <section class="panel action-dock" id="action-dock">
+          <div class="action-group primary-actions">
+            <button class="btn-check" data-action="check">Check</button>
+            <button class="btn-call" data-action="call">Call</button>
+            <button class="btn-raise" data-action="raise">Raise</button>
+          </div>
+          <div class="action-group raise-group">
+            <label for="raise-amount">Raise額</label>
+            <input id="raise-amount" type="number" min="1" value="20" />
+          </div>
+          <div class="action-group utility-actions">
+            <button class="btn-fold" data-action="fold">Fold</button>
+            <button id="next-hand">次ハンド</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="settlement-overlay" id="settlement-overlay" aria-hidden="true">
+        <div class="settlement-card">
+          <h2>ハンド精算結果</h2>
+          <div id="overlay-winner" class="winner-banner"></div>
+          <ul id="overlay-movements" class="chip-movements"></ul>
+          <button id="close-overlay">閉じる</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/web/ui.js"></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "poker-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/cli.js",
+    "start:cli": "node src/cli.js",
+    "start:web": "node src/webServer.js",
+    "test": "node --test tests/handEvaluator.test.mjs",
+    "test:exhaustive": "node tests/exhaustive5card-check.mjs"
+  },
+  "dependencies": {
+    "poker-evaluator": "^2.1.1",
+    "tx-holdem": "^1.0.0"
+  }
+}

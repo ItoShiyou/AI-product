@@ -1,0 +1,15 @@
+{
+  "name": "daifugo-firebase",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firebase development setup for Daifugo project",
+  "scripts": {
+    "firebase:login": "firebase login",
+    "firebase:init": "firebase init",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "firebase deploy"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.12.0"
+  }
+}
