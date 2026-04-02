@@ -8,13 +8,17 @@
     "firebase:init": "firebase init",
     "firebase:emulators": "firebase emulators:start",
     "firebase:deploy": "firebase deploy",
-    "start": "npx serve ."
+    "dev": "vite",
+    "start": "vite",
+    "serve:static": "npx serve .",
+    "build": "vite build"
   },
   "dependencies": {
     "firebase": "^11.10.0"
   },
   "devDependencies": {
     "serve": "^14.2.4",
-    "firebase-tools": "^15.12.0"
+    "firebase-tools": "^15.12.0",
+    "vite": "^7.1.6"
   }
 }

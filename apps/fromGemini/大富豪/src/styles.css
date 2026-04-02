@@ -1,0 +1,195 @@
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-strong: #e9eefc;
+  --text: #1f2a44;
+  --muted: #5c6784;
+  --primary: #1c6dd0;
+  --primary-strong: #0e4e9f;
+  --danger: #b42318;
+  --ok: #106c2e;
+  --shadow: 0 10px 30px rgba(15, 30, 60, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: radial-gradient(circle at 20% -20%, #d9ebff, transparent 50%), var(--bg);
+  color: var(--text);
+}
+
+#app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.title {
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.actions {
+  margin-top: 16px;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: var(--primary);
+}
+
+button:hover {
+  background: var(--primary-strong);
+}
+
+button.secondary {
+  background: #5f6f94;
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.stat {
+  background: var(--surface-strong);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.stat p:last-child {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.status {
+  margin: 14px 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #eef5ff;
+  color: #244372;
+}
+
+.table {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f1f7ff;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #6f7da1;
+}
+
+.badge.ok {
+  background: var(--ok);
+}
+
+.badge.warn {
+  background: #9b6f00;
+}
+
+.cards {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card {
+  min-width: 58px;
+  text-align: center;
+  border: 1px solid #d0d8eb;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+  font-size: 13px;
+  color: #1b1d2a;
+}
+
+.card.red {
+  color: #b42318;
+}
+
+.playable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.playable button {
+  background: #0b8f60;
+}
+
+.playable button:hover {
+  background: #0a744f;
+}
+
+.mt {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  #app {
+    padding: 14px 12px 28px;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
