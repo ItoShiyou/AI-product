@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Firebase: Login",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "firebase:login"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Firebase: Init",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "firebase:init"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Firebase: Use Project",
+      "type": "shell",
+      "command": "npx",
+      "args": ["firebase", "use", "--add"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Firebase: Start Emulators",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "firebase:emulators"],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Firebase: Deploy",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "firebase:deploy"],
+      "problemMatcher": []
+    }
+  ]
+}

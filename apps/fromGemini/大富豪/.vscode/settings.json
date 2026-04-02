@@ -1,0 +1,4 @@
+{
+  "npm.packageManager": "npm",
+  "terminal.integrated.cwd": "${workspaceFolder}"
+}
