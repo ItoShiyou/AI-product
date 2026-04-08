@@ -2,6 +2,7 @@ import { app } from "./firebase.js";
 
 const SUITS = ["S", "H", "D", "C"];
 const SUIT_LABEL = { S: "スペード", H: "ハート", D: "ダイヤ", C: "クラブ" };
+const SUIT_MARK = { S: "♠", H: "♥", D: "♦", C: "♣" };
 const RANKS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const RANK_LABEL = {
   3: "3",
@@ -24,7 +25,8 @@ const CPU_DELAY_MS = 700;
 const state = {
   screen: "home",
   game: null,
-  firebaseName: app.name
+  firebaseName: app.name,
+  selectedCardIds: []
 };
 
 const appRoot = document.getElementById("app");
@@ -75,6 +77,99 @@ function cardLabel(card) {
     return "ジョーカー";
   }
   return `${SUIT_LABEL[card.suit]} ${RANK_LABEL[card.rank]}`;
+}
+
+function cardShortLabel(card) {
+  if (isJoker(card)) {
+    return "JOKER";
+  }
+  return `${SUIT_MARK[card.suit]} ${RANK_LABEL[card.rank]}`;
+}
+
+function cardSuitClass(card) {
+  if (isJoker(card)) {
+    return "suit-joker";
+  }
+  if (card.suit === "H") {
+    return "suit-hearts";
+  }
+  if (card.suit === "D") {
+    return "suit-diamonds";
+  }
+  if (card.suit === "S") {
+    return "suit-spades";
+  }
+  return "suit-clubs";
+}
+
+function cardRankText(card) {
+  if (isJoker(card)) {
+    return "J";
+  }
+  return RANK_LABEL[card.rank];
+}
+
+function renderCenterContent(card) {
+  if (isJoker(card)) {
+    return '<span class="center-face"><span class="face-label">JOKER</span></span>';
+  }
+
+  // J/Q/K は中央の追加描画を行わない。
+  if (card.rank >= 11 && card.rank <= 13) {
+    return "";
+  }
+
+  // 数札は中央にスートマークを枚数分表示する（3-10 と A と 2）。
+  const pipCount =
+    card.rank === 14 ? 1 : card.rank === 15 ? 2 : card.rank >= 3 && card.rank <= 10 ? card.rank : null;
+  if (pipCount) {
+    return `<span class="center-symbols pip-count-${pipCount}">${Array.from({ length: pipCount }, () => `<span class="pip">${SUIT_MARK[card.suit]}</span>`).join("")}</span>`;
+  }
+
+  return `<span class="center-face"><span class="face-label">${RANK_LABEL[card.rank]}</span><span class="face-suit">${SUIT_MARK[card.suit]}</span></span>`;
+}
+
+function renderCardShell(card, sizeClass = "") {
+  const suitClass = cardSuitClass(card);
+  const rank = cardRankText(card);
+  const mark = isJoker(card) ? "★" : SUIT_MARK[card.suit];
+  const corners = isJoker(card)
+    ? ""
+    : `<span class="corner top"><span class="rank">${rank}</span><span class="mark">${mark}</span></span>
+          <span class="corner bottom"><span class="rank">${rank}</span><span class="mark">${mark}</span></span>`;
+
+  return `
+    <span class="card-shell ${sizeClass}">
+      <span class="card-inner">
+        <span class="card-front ${suitClass}">
+          ${corners}
+          ${renderCenterContent(card)}
+        </span>
+        <span class="card-back"></span>
+      </span>
+    </span>
+  `;
+}
+
+function renderBackCards(count) {
+  const visible = Math.min(count, 10);
+  return Array.from({ length: visible }, () => '<span class="back-card"></span>').join("");
+}
+
+function renderOpponentSeat(player, seatLabel, currentPlayerIndex, finishedPlayerIndexes) {
+  return `
+    <div class="opponent-seat ${player.id === currentPlayerIndex ? "current" : ""} ${
+      finishedPlayerIndexes.includes(player.id) ? "finished" : ""
+    }">
+      <div class="opponent-hand">
+        <span class="opponent-count">${player.hand.length}</span>
+        ${renderBackCards(player.hand.length)}
+      </div>
+      <div class="opponent-meta">
+        <span class="opponent-name">${escapeHtml(seatLabel)} ${escapeHtml(player.name)}</span>
+      </div>
+    </div>
+  `;
 }
 
 function moveLabel(move) {
@@ -165,12 +260,11 @@ function applyCardExchange(players, previousResult) {
 
 function createMovesFromHand(hand) {
   const grouped = new Map();
+  const jokers = [];
+
   for (const card of hand) {
     if (isJoker(card)) {
-      if (!grouped.has(16)) {
-        grouped.set(16, []);
-      }
-      grouped.get(16).push(card);
+      jokers.push(card);
       continue;
     }
     if (!grouped.has(card.rank)) {
@@ -179,18 +273,72 @@ function createMovesFromHand(hand) {
     grouped.get(card.rank).push(card);
   }
 
+  const jokerCount = jokers.length;
   const moves = [];
+
+  if (jokerCount > 0) {
+    moves.push({ cards: [jokers[0]], rank: 16, count: 1 });
+  }
+
   for (const [rank, cards] of grouped.entries()) {
-    if (rank === 16) {
-      moves.push({ cards: [cards[0]], rank: 16, count: 1 });
-      continue;
-    }
-    const max = Math.min(4, cards.length);
-    for (let count = 1; count <= max; count += 1) {
-      moves.push({ cards: cards.slice(0, count), rank, count });
+    const maxCount = Math.min(4, cards.length + jokerCount);
+    for (let count = 1; count <= maxCount; count += 1) {
+      const maxJokersUsed = Math.min(jokerCount, count - 1);
+      for (let jokersUsed = 0; jokersUsed <= maxJokersUsed; jokersUsed += 1) {
+        const nonJokerUsed = count - jokersUsed;
+        if (nonJokerUsed < 1 || nonJokerUsed > cards.length) {
+          continue;
+        }
+        const combinations = createCardCombinations(cards, nonJokerUsed);
+        combinations.forEach((combo) => {
+          const moveCards = combo.concat(jokers.slice(0, jokersUsed));
+          moves.push({ cards: moveCards, rank, count });
+        });
+      }
     }
   }
-  return moves;
+
+  return dedupeMoves(moves);
+}
+
+function createCardCombinations(cards, pickCount) {
+  if (pickCount === 0) {
+    return [[]];
+  }
+
+  const result = [];
+  const current = [];
+
+  function dfs(start) {
+    if (current.length === pickCount) {
+      result.push([...current]);
+      return;
+    }
+    for (let i = start; i < cards.length; i += 1) {
+      current.push(cards[i]);
+      dfs(i + 1);
+      current.pop();
+    }
+  }
+
+  dfs(0);
+  return result;
+}
+
+function moveKey(move) {
+  const ids = move.cards
+    .map((card) => card.id)
+    .sort((a, b) => a - b)
+    .join("-");
+  return `${move.rank}:${move.count}:${ids}`;
+}
+
+function dedupeMoves(moves) {
+  const map = new Map();
+  moves.forEach((move) => {
+    map.set(moveKey(move), move);
+  });
+  return [...map.values()];
 }
 
 function getValidMoves(hand, table, revolution) {
@@ -211,6 +359,35 @@ function getValidMoves(hand, table, revolution) {
     }
     return rankToSortValue(a.rank, revolution) - rankToSortValue(b.rank, revolution);
   });
+}
+
+function isSubsetCardIds(subsetCards, targetCards) {
+  const targetIds = new Set(targetCards.map((card) => card.id));
+  return subsetCards.every((card) => targetIds.has(card.id));
+}
+
+function findExactMoveByCards(cards, validMoves) {
+  const cardIds = new Set(cards.map((card) => card.id));
+  return (
+    validMoves.find((move) => {
+      if (move.cards.length !== cards.length) {
+        return false;
+      }
+      return move.cards.every((card) => cardIds.has(card.id));
+    }) || null
+  );
+}
+
+function isSelectionPlayable(cards, validMoves) {
+  if (cards.length === 0) {
+    return false;
+  }
+  return Boolean(findExactMoveByCards(cards, validMoves));
+}
+
+function canCardBeSelected(card, selectedCards, validMoves) {
+  const nextCards = [...selectedCards, card];
+  return validMoves.some((move) => isSubsetCardIds(nextCards, move.cards));
 }
 
 function nextAlivePlayerIndex(game, startIndex) {
@@ -263,6 +440,7 @@ function startSingleGame(previousResult = null) {
     waitingCpuTurn: false,
     message: "ゲーム開始。あなたからスタートします。"
   };
+  state.selectedCardIds = [];
   state.screen = "single";
   render();
   runCpuIfNeeded();
@@ -306,6 +484,10 @@ function playMove(playerIndex, move) {
   const game = state.game;
   const player = game.players[playerIndex];
 
+  if (playerIndex === 0) {
+    state.selectedCardIds = [];
+  }
+
   player.hand = removeCardsFromHand(player.hand, move.cards);
   game.table = { rank: move.rank, count: move.count, cards: move.cards };
   game.lastMovePlayerIndex = playerIndex;
@@ -334,6 +516,9 @@ function playMove(playerIndex, move) {
 function passTurn(playerIndex) {
   const game = state.game;
   const player = game.players[playerIndex];
+  if (playerIndex === 0) {
+    state.selectedCardIds = [];
+  }
   game.consecutivePasses += 1;
   game.message = `${player.name} はパスしました。`;
 
@@ -449,88 +634,109 @@ function renderResult(game) {
 
 function renderSingle() {
   const game = state.game;
-  const current = game.players[game.currentPlayerIndex];
   const me = game.players[0];
   const validMoves =
     game.result || game.currentPlayerIndex !== 0 ? [] : getValidMoves(me.hand, game.table, game.revolution);
+  const sortedHand = sortHand(me.hand, game.revolution);
+  const handCardIds = new Set(sortedHand.map((card) => card.id));
+  state.selectedCardIds = state.selectedCardIds.filter((id) => handCardIds.has(id));
+  if (game.currentPlayerIndex !== 0 || game.result) {
+    state.selectedCardIds = [];
+  }
 
-  const cpuStats = game.players
-    .filter((p) => p.id !== 0)
-    .map(
-      (p) => `
-      <div class="stat">
-        <p>${escapeHtml(p.name)}</p>
-        <p>残り ${p.hand.length} 枚</p>
-      </div>
-    `
-    )
-    .join("");
+  const selectedSet = new Set(state.selectedCardIds);
+  const selectedCards = sortedHand.filter((card) => selectedSet.has(card.id));
+  const selectedCardIdSet = new Set(selectedCards.map((card) => card.id));
+  const canSubmit = isSelectionPlayable(selectedCards, validMoves);
+  const canCancel = selectedCards.length > 0;
+
+  const playerA = game.players.find((p) => p.id === 1);
+  const playerB = game.players.find((p) => p.id === 2);
+  const playerC = game.players.find((p) => p.id === 3);
 
   const tableText = game.table
     ? `${moveLabel({ cards: game.table.cards, rank: game.table.rank })}`
     : "場は空です";
+  const tableCards = game.table
+    ? game.table.cards
+        .map((card) => `<span class="table-card">${renderCardShell(card, "table-size")}</span>`)
+        .join("")
+    : "";
+  const lastPlayerName = game.lastMovePlayerIndex !== null ? game.players[game.lastMovePlayerIndex].name : "-";
+  const messageChip = game.waitingCpuTurn ? "CPU 思考中" : game.currentPlayerIndex === 0 ? "あなたの手番" : "CPUの手番";
 
   appRoot.innerHTML = `
-    <section class="panel">
-      <h2>ひとりで対戦</h2>
-      <p class="subtitle">あなた vs CPU3人</p>
-      <div class="grid mt">${cpuStats}</div>
-      <div class="status">
-        <p>手番: ${escapeHtml(current.name)}</p>
-        <p>状態: ${game.revolution ? '<span class="badge warn">革命中</span>' : '<span class="badge ok">通常</span>'}</p>
-        <p>メッセージ: ${escapeHtml(game.message)}</p>
+    <section class="game-shell table-layout">
+      <div class="hud-row">
+        <span class="hud-chip turn">${escapeHtml(messageChip)}</span>
+        <span class="hud-chip state ${game.revolution ? "warn" : "ok"}">${game.revolution ? "革命" : "通常"}</span>
+        <span class="hud-chip last">LAST: ${escapeHtml(lastPlayerName)}</span>
       </div>
-      <div class="table">
-        <p>場のカード: ${escapeHtml(tableText)}</p>
+      <div class="table-felt mt">
+        <div class="seat-a">
+          ${playerA ? renderOpponentSeat(playerA, "A", game.currentPlayerIndex, game.finishedPlayerIndexes) : ""}
+        </div>
+        <div class="seat-b">
+          ${playerB ? renderOpponentSeat(playerB, "B", game.currentPlayerIndex, game.finishedPlayerIndexes) : ""}
+        </div>
+        <div class="seat-c">
+          ${playerC ? renderOpponentSeat(playerC, "C", game.currentPlayerIndex, game.finishedPlayerIndexes) : ""}
+        </div>
+        <div class="center-pile">
+          ${
+            game.table
+              ? `<div class="table arena">
+                   <div class="table-head">
+                     <p>${escapeHtml(tableText)}</p>
+                   </div>
+                   <div class="table-cards">${tableCards}</div>
+                 </div>`
+              : '<p class="table-empty-floating">場は空です</p>'
+          }
+        </div>
+        <div class="seat-p">
+          <div class="you-seat ${game.currentPlayerIndex === 0 ? "current" : ""}">
+            <span class="you-seat-label">P</span>
+            <span class="you-seat-count">${me.hand.length}</span>
+          </div>
+        </div>
       </div>
-      <section class="mt">
-        <h3>あなたの手札 (${me.hand.length}枚)</h3>
-        <div class="cards">
-          ${sortHand(me.hand, game.revolution)
-            .map((card) => {
-              const red = card.suit === "H" || card.suit === "D" ? "red" : "";
-              return `<span class="card ${red}">${escapeHtml(cardLabel(card))}</span>`;
-            })
-            .join("")}
+      <section class="bottom-dock">
+        <div class="hand-zone">
+          <div class="hand-head">
+            <span class="you-label">YOU</span>
+            <span class="you-count">${me.hand.length}</span>
+          </div>
+          <div class="cards player-cards">
+            ${sortedHand
+              .map((card) => {
+                const selected = selectedCardIdSet.has(card.id) ? "selected" : "";
+                const selectable = selectedCardIdSet.has(card.id) || canCardBeSelected(card, selectedCards, validMoves);
+                return `<button type="button" class="card ${selected}" data-action="select-card" data-card-id="${card.id}" ${
+                  selectable ? "" : "disabled"
+                }>${renderCardShell(card, "player-size")}</button>`;
+              })
+              .join("")}
+          </div>
         </div>
-      </section>
-      <section class="mt">
-        <h3>出せる手</h3>
-        <div class="playable">
-          ${validMoves
-            .slice(0, 12)
-            .map(
-              (move, index) =>
-                `<button data-action="play" data-move-index="${index}">${escapeHtml(moveLabel(move))}</button>`
-            )
-            .join("")}
-        </div>
-        ${
-          validMoves.length > 12
-            ? `<p class="subtitle">候補が多いため先頭12件を表示しています。</p>`
-            : ""
-        }
-        <div class="actions row mt">
-          <button class="danger" data-action="pass" ${game.table ? "" : "disabled"}>パス</button>
-          <button class="secondary" data-action="go-home">ホームに戻る</button>
+        <div class="controls-zone">
+          <div class="actions row action-row compact">
+            <button data-action="submit-selected" ${canSubmit ? "" : "disabled"}>出す</button>
+            <button class="secondary" data-action="cancel-selection" ${canCancel ? "" : "disabled"}>キャンセル</button>
+            <button class="danger" data-action="pass" ${game.table ? "" : "disabled"}>パス</button>
+          </div>
+          <p class="compact-message">${escapeHtml(game.message)}</p>
         </div>
       </section>
     </section>
     ${game.result ? renderResult(game) : ""}
   `;
 
-  if (!game.result && game.currentPlayerIndex !== 0) {
-    const cpuNotice = document.createElement("p");
-    cpuNotice.className = "subtitle mt";
-    cpuNotice.textContent = "CPU の手番です...";
-    appRoot.querySelector(".panel")?.appendChild(cpuNotice);
-  }
-
   if (!game.result && game.currentPlayerIndex === 0 && validMoves.length === 0 && game.table) {
     game.message = "出せる手がないためパスしてください。";
   }
 
-  bindSingleEvents(validMoves);
+  bindSingleEvents();
 }
 
 function bindHomeEvents() {
@@ -547,16 +753,69 @@ function bindHomeEvents() {
   });
 }
 
-function bindSingleEvents(validMoves) {
-  appRoot.querySelectorAll('[data-action="play"]').forEach((button) => {
+function bindSingleEvents() {
+  appRoot.querySelectorAll('[data-action="select-card"]').forEach((button) => {
     button.addEventListener("click", () => {
-      const index = Number(button.getAttribute("data-move-index"));
-      const move = validMoves[index];
-      if (!move || state.game.currentPlayerIndex !== 0 || state.game.result) {
+      const game = state.game;
+      if (!game || game.currentPlayerIndex !== 0 || game.result) {
         return;
       }
-      playMove(0, move);
+
+      const cardId = Number(button.getAttribute("data-card-id"));
+      const me = game.players[0];
+      const validMoves = getValidMoves(me.hand, game.table, game.revolution);
+      const sortedHand = sortHand(me.hand, game.revolution);
+      const card = sortedHand.find((item) => item.id === cardId);
+      if (!card) {
+        return;
+      }
+
+      const selectedSet = new Set(state.selectedCardIds);
+      if (selectedSet.has(cardId)) {
+        selectedSet.delete(cardId);
+        state.selectedCardIds = [...selectedSet];
+        render();
+        return;
+      }
+
+      const selectedCards = sortedHand.filter((item) => selectedSet.has(item.id));
+      if (!canCardBeSelected(card, selectedCards, validMoves)) {
+        return;
+      }
+
+      selectedSet.add(cardId);
+      state.selectedCardIds = [...selectedSet];
+      render();
     });
+  });
+
+  appRoot.querySelector('[data-action="submit-selected"]')?.addEventListener("click", () => {
+    const game = state.game;
+    if (!game || game.currentPlayerIndex !== 0 || game.result) {
+      return;
+    }
+
+    const me = game.players[0];
+    const sortedHand = sortHand(me.hand, game.revolution);
+    const selectedSet = new Set(state.selectedCardIds);
+    const selectedCards = sortedHand.filter((card) => selectedSet.has(card.id));
+    const validMoves = getValidMoves(me.hand, game.table, game.revolution);
+
+    const move = findExactMoveByCards(selectedCards, validMoves);
+    if (!move) {
+      return;
+    }
+
+    playMove(0, move);
+  });
+
+  appRoot.querySelector('[data-action="cancel-selection"]')?.addEventListener("click", () => {
+    const game = state.game;
+    if (!game || game.currentPlayerIndex !== 0 || game.result) {
+      return;
+    }
+    state.selectedCardIds = [];
+    render();
   });
 
   appRoot.querySelector('[data-action="pass"]')?.addEventListener("click", () => {
@@ -575,6 +834,7 @@ function bindSingleEvents(validMoves) {
     button.addEventListener("click", () => {
       state.screen = "home";
       state.game = null;
+      state.selectedCardIds = [];
       render();
     });
   });
@@ -584,6 +844,8 @@ function render() {
   if (!appRoot) {
     return;
   }
+  const gameMode = state.screen === "single" && state.game;
+  document.body.classList.toggle("game-view", Boolean(gameMode));
   if (state.screen === "single" && state.game) {
     renderSingle();
     return;
