@@ -8,12 +8,16 @@ const DIRECTIONS = [
     [1, -1],  [1, 0],  [1, 1]
 ];
 
+function getIndex(x, y) {
+    return y * BOARD_SIZE + x;
+}
+
 function createInitialBoard() {
-    const board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(EMPTY));
-    board[3][3] = WHITE;
-    board[3][4] = BLACK;
-    board[4][3] = BLACK;
-    board[4][4] = WHITE;
+    const board = Array(BOARD_SIZE * BOARD_SIZE).fill(EMPTY);
+    board[getIndex(3, 3)] = WHITE;
+    board[getIndex(3, 4)] = BLACK;
+    board[getIndex(4, 3)] = BLACK;
+    board[getIndex(4, 4)] = WHITE;
     return board;
 }
 
@@ -40,9 +44,9 @@ function countStones(state) {
     let whiteCount = 0;
     for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
-            if (state.board[y][x] === BLACK) {
+            if (state.board[getIndex(x, y)] === BLACK) {
                 blackCount++;
-            } else if (state.board[y][x] === WHITE) {
+            } else if (state.board[getIndex(x, y)] === WHITE) {
                 whiteCount++;
             }
         }
@@ -51,7 +55,7 @@ function countStones(state) {
 }
 
 function findFlippableStones(state, x, y, color) {
-    if (!isInsideBoard(x, y) || state.board[y][x] !== EMPTY) {
+    if (!isInsideBoard(x, y) || state.board[getIndex(x, y)] !== EMPTY) {
         return [];
     }
     const flips = [];
@@ -60,7 +64,7 @@ function findFlippableStones(state, x, y, color) {
         let ny = y + dy;
         const line = [];
         while (isInsideBoard(nx, ny)) {
-            const cell = state.board[ny][nx];
+            const cell = state.board[getIndex(nx, ny)];
             if (cell === EMPTY) {
                 line.length = 0;
                 break;
@@ -72,7 +76,7 @@ function findFlippableStones(state, x, y, color) {
             nx += dx;
             ny += dy;
         }
-        if (!isInsideBoard(nx, ny) || state.board[ny][nx] !== color) {
+        if (!isInsideBoard(nx, ny) || state.board[getIndex(nx, ny)] !== color) {
             continue;
         }
         flips.push(...line);
@@ -143,9 +147,9 @@ function applyMove(state, x, y) {
     if (flips.length === 0) {
         return false;
     }
-    state.board[y][x] = state.turn;
+    state.board[getIndex(x, y)] = state.turn;
     for (const [fx, fy] of flips) {
-        state.board[fy][fx] = state.turn;
+        state.board[getIndex(fx, fy)] = state.turn;
     }
     state.turn = opponent(state.turn);
     state.passCount = 0;
@@ -219,9 +223,9 @@ function createBrowserApp() {
         }
         for (let y = 0; y < BOARD_SIZE; y++) {
             for (let x = 0; x < BOARD_SIZE; x++) {
-                if (state.board[y][x] === BLACK) {
+                if (state.board[getIndex(x, y)] === BLACK) {
                     drawStone(x, y, "black");
-                } else if (state.board[y][x] === WHITE) {
+                } else if (state.board[getIndex(x, y)] === WHITE) {
                     drawStone(x, y, "white");
                 }
             }
@@ -300,9 +304,9 @@ function formatBoardForCli(state) {
     for (let y = 0; y < BOARD_SIZE; y++) {
         let line = `${y} `;
         for (let x = 0; x < BOARD_SIZE; x++) {
-            if (state.board[y][x] === BLACK) {
+            if (state.board[getIndex(x, y)] === BLACK) {
                 line += "B";
-            } else if (state.board[y][x] === WHITE) {
+            } else if (state.board[getIndex(x, y)] === WHITE) {
                 line += "W";
             } else if (puttableSet.has(`${x},${y}`)) {
                 line += "*";
